@@ -2,13 +2,17 @@ package net.hcfrevival.arena.queue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.queue.impl.IArenaQueue;
 import net.hcfrevival.arena.queue.impl.RankedQueueEntry;
 import net.hcfrevival.arena.queue.impl.UnrankedQueueEntry;
+import net.hcfrevival.arena.queue.task.QueueMatchTask;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +21,8 @@ import java.util.Set;
 public final class QueueManager extends ArenaManager {
     @Getter public Set<IArenaQueue> queueRepository;
     @Getter public QueueExecutor executor;
+    @Getter public BukkitTask queueMatchTask;
+    @Getter public BukkitTask queueNotifierTask;
 
     public QueueManager(ArenaPlugin plugin) {
         super(plugin);
@@ -25,8 +31,36 @@ public final class QueueManager extends ArenaManager {
     }
 
     @Override
+    public void onEnable() {
+        super.onEnable();
+
+        queueMatchTask = new Scheduler(plugin).async(new QueueMatchTask(this)).repeat(5 * 20L, 5 * 20L).run();
+
+        queueNotifierTask = new Scheduler(plugin).sync(() -> {
+            queueRepository.forEach(queue -> {
+                final Player player = Bukkit.getPlayer(queue.getUniqueId());
+
+                if (player != null) {
+                    if (queue instanceof final RankedQueueEntry rankedQueue) {
+                        player.sendMessage("In queue message (ranked)");
+                    }
+
+                    else if (queue instanceof final UnrankedQueueEntry unrankedQueue) {
+                        player.sendMessage("In queue message (unranked)");
+                    }
+                }
+            });
+        }).repeat(0L, 15 * 20L).run();
+    }
+
+    @Override
     public void onDisable() {
         super.onDisable();
+
+        if (queueMatchTask != null) {
+            queueMatchTask.cancel();
+            queueMatchTask.cancel();
+        }
 
         queueRepository.clear();
     }

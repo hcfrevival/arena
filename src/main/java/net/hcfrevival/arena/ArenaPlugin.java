@@ -1,16 +1,16 @@
 package net.hcfrevival.arena;
 
 import com.google.common.collect.Maps;
-import gg.hcfactions.libs.acf.PaperCommandManager;
 import gg.hcfactions.libs.bukkit.AresPlugin;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
-import gg.hcfactions.libs.bukkit.services.impl.punishments.PunishmentService;
 import lombok.Getter;
 import net.hcfrevival.arena.command.ArenaCommand;
 import net.hcfrevival.arena.items.*;
+import net.hcfrevival.arena.level.LevelManager;
 import net.hcfrevival.arena.listener.LobbyListener;
 import net.hcfrevival.arena.listener.PlayerDataListener;
 import net.hcfrevival.arena.listener.QueueListener;
+import net.hcfrevival.arena.listener.SpectatorListener;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.queue.QueueManager;
 
@@ -90,12 +90,14 @@ public final class ArenaPlugin extends AresPlugin {
         // managers
         registerManager(new PlayerManager(this));
         registerManager(new QueueManager(this));
+        registerManager(new LevelManager(this));
         managers.values().forEach(ArenaManager::onEnable);
 
         // listeners
         registerListener(new LobbyListener(this));
         registerListener(new PlayerDataListener(this));
         registerListener(new QueueListener(this));
+        registerListener(new SpectatorListener(this));
     }
 
     @Override

@@ -2,7 +2,6 @@ package net.hcfrevival.arena.listener;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.event.PlayerJoinQueueEvent;
@@ -15,11 +14,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-@AllArgsConstructor
-public final class QueueListener implements Listener {
-    @Getter public final ArenaPlugin plugin;
-
-    @EventHandler (priority = EventPriority.MONITOR)
+public record QueueListener(@Getter ArenaPlugin plugin) implements Listener {
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoinQueue(PlayerJoinQueueEvent event) {
         if (event.isCancelled()) {
             return;
@@ -30,7 +26,7 @@ public final class QueueListener implements Listener {
         LobbyUtil.giveQueueItems(plugin, player);
     }
 
-    @EventHandler (priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerLeaveQueue(PlayerLeaveQueueEvent event) {
         if (event.isCancelled()) {
             return;
