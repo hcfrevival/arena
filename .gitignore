@@ -6,5 +6,6 @@ dependency-reduced-pom.xml
 .project
 .settings
 .idea
+.idea/
 *.iml
 local
