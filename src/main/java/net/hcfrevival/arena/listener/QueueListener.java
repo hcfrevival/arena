@@ -1,6 +1,5 @@
 package net.hcfrevival.arena.listener;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
@@ -41,7 +40,6 @@ public record QueueListener(@Getter ArenaPlugin plugin) implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         final Player player = event.getPlayer();
         final QueueManager queueManager = (QueueManager) plugin.getManagers().get(QueueManager.class);
-
         queueManager.getQueueRepository().removeIf(queue -> queue.getUniqueId().equals(player.getUniqueId()));
     }
 }

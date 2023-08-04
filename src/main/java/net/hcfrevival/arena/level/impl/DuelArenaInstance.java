@@ -5,6 +5,7 @@ import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import net.hcfrevival.arena.level.IArena;
 import net.hcfrevival.arena.level.IArenaInstance;
 
 import java.util.List;
@@ -13,8 +14,14 @@ import java.util.UUID;
 @AllArgsConstructor
 public class DuelArenaInstance implements IArenaInstance {
     @Getter public final UUID uniqueId;
+    @Getter public DuelArena owner;
     @Getter @Setter public boolean available;
     @Getter public final List<PLocatable> spawnpoints;
     @Getter public final PLocatable spectatorSpawnpoint;
     @Getter public final IRegion region;
+
+    @Override
+    public void setOwner(IArena owner) {
+        this.owner = (DuelArena) owner;
+    }
 }

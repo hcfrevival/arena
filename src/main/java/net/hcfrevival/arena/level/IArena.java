@@ -37,4 +37,13 @@ public interface IArena {
     default Optional<IArenaInstance> getAvailableInstance() {
         return getInstances().stream().filter(IArenaInstance::isAvailable).findFirst();
     }
+
+    /**
+     * Register a new Arena Instance
+     * @param inst Arena Instance
+     */
+    default void registerInstance(IArenaInstance inst) {
+        inst.setOwner(this);
+        getInstances().add(inst);
+    }
 }

@@ -5,8 +5,12 @@ import gg.hcfactions.libs.bukkit.utils.Players;
 import net.hcfrevival.arena.level.IArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -47,6 +51,12 @@ public interface ISession {
      * @param l Epoch millis
      */
     void setEndTimestamp(long l);
+
+    /**
+     * Collects and returns all ArenaPlayer instances associated with this session
+     * @return List of ArenaPlayer
+     */
+    List<ArenaPlayer> getPlayers();
 
     /**
      * Return the time in millis this session
@@ -106,6 +116,36 @@ public interface ISession {
             Players.resetHealth(bukkitPlayer);
 
             getSpectators().add(player);
+        });
+    }
+
+    default void sendMessage(String message) {
+        getPlayers().forEach(arenaPlayer -> {
+            final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
+
+            if (player != null) {
+                player.sendMessage(message);
+            }
+        });
+    }
+
+    default void sendSound(Sound sound) {
+        getPlayers().forEach(arenaPlayer -> {
+            final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
+
+            if (player != null) {
+                Players.playSound(player, sound);
+            }
+        });
+    }
+
+    default void sendTitle(String title, String subtitle, int fadeIn, int duration, int fadeOut) {
+        getPlayers().forEach(arenaPlayer -> {
+            final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
+
+            if (player != null) {
+                player.sendTitle(title, subtitle, fadeIn, duration, fadeOut);
+            }
         });
     }
 }

@@ -1,72 +1,23 @@
 package net.hcfrevival.arena;
 
 import com.google.common.collect.Maps;
+import gg.hcfactions.cx.CXService;
 import gg.hcfactions.libs.bukkit.AresPlugin;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
 import net.hcfrevival.arena.command.ArenaCommand;
 import net.hcfrevival.arena.items.*;
 import net.hcfrevival.arena.level.LevelManager;
-import net.hcfrevival.arena.listener.LobbyListener;
-import net.hcfrevival.arena.listener.PlayerDataListener;
-import net.hcfrevival.arena.listener.QueueListener;
-import net.hcfrevival.arena.listener.SpectatorListener;
+import net.hcfrevival.arena.listener.*;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.queue.QueueManager;
+import net.hcfrevival.arena.session.SessionManager;
+import net.hcfrevival.arena.timer.TimerManager;
 
 import java.util.Map;
 
 public final class ArenaPlugin extends AresPlugin {
     @Getter public Map<Class<? extends ArenaManager>, ArenaManager> managers;
-
-    /*
-        PLAYER STATES
-            - LOBBY
-            - LOBBY_INQUEUE
-            - LOBBY_INPARTY
-            - INGAME
-            - SPECTATE_DEAD
-            - SPECTATE
-
-        QUEUE FLOW
-            PLAYER JOIN
-                GIVE QUEUE ITEMS
-            RIGHT-CLICK QUEUE ITEM
-                OPEN KIT SELECT GUI
-            ENTER QUEUE
-            UNRANKED
-                SEARCH ANY PLAYER IN SAME QUEUE
-            RANKED
-                CREATE QUEUE OBJECT WITH CURRENT RATING + RANGE
-            FIND MATCH
-                CREATE SESSION
-            TELEPORT TO ARENA
-            START SESSION
-            END SESSION, CONCLUDE RESULTS
-
-        DUEL REQUEST FLOW
-            TYPE COMMAND
-            SELECT KIT
-            OTHER PLAYER ACCEPT
-            CREATE SESSION
-            TELEPORT TO ARENA
-            START SESSION
-            END SESSION, CONCLUDE RESULTS
-
-        PARTY/TEAM FLOW
-            PLAYER JOIN
-                GIVE TEAM ITEMS
-            RIGHT-CLICK CREATE PARTY ITEM
-            GIVE PARTY ITEM SET
-            OPEN OTHER PARTIES GUI
-            CLICK OTHER PARTY
-            SELECT KIT
-            ACCEPT DUEL REQUEST
-            CREATE SESSION
-            TELEPORT TO ARENA
-            START SESSION
-            END SESSION, CONCLUDE RESULTS
-     */
 
     @Override
     public void onEnable() {
@@ -81,6 +32,7 @@ public final class ArenaPlugin extends AresPlugin {
         cis.registerNewItem(new EditKitItem());
         cis.registerNewItem(new CreatePartyItem());
         registerService(cis);
+        registerService(new CXService(this));
 
         startServices();
 
@@ -91,6 +43,8 @@ public final class ArenaPlugin extends AresPlugin {
         registerManager(new PlayerManager(this));
         registerManager(new QueueManager(this));
         registerManager(new LevelManager(this));
+        registerManager(new SessionManager(this));
+        registerManager(new TimerManager(this));
         managers.values().forEach(ArenaManager::onEnable);
 
         // listeners
@@ -98,6 +52,8 @@ public final class ArenaPlugin extends AresPlugin {
         registerListener(new PlayerDataListener(this));
         registerListener(new QueueListener(this));
         registerListener(new SpectatorListener(this));
+        registerListener(new MatchListener(this));
+        registerListener(new StatsListener(this));
     }
 
     @Override

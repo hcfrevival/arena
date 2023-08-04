@@ -1,17 +1,18 @@
 package net.hcfrevival.arena.level;
 
 import com.google.common.collect.Lists;
+import gg.hcfactions.libs.bukkit.location.impl.BLocatable;
+import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.level.builder.LevelBuilderManager;
-import net.hcfrevival.arena.level.impl.DuelArena;
-import net.hcfrevival.arena.level.impl.DuelArenaInstance;
-import net.hcfrevival.arena.level.impl.TeamArena;
-import net.hcfrevival.arena.level.impl.TeamArenaInstance;
+import net.hcfrevival.arena.level.impl.*;
+import org.bukkit.ChatColor;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public final class LevelManager extends ArenaManager {
     @Getter public final LevelBuilderManager levelBuilderManager;
@@ -40,7 +41,18 @@ public final class LevelManager extends ArenaManager {
     }
 
     private void loadArenas() {
+        // TODO: Testing, remove soon
+        final PLocatable spawn1 = new PLocatable("world", 10.0, 64.0, 10.0, 0.0f, 0.0f);
+        final PLocatable spawn2 = new PLocatable("world", -10.0, 64.0, -10.0, 0.0f, 0.0f);
+        final PLocatable spec = new PLocatable("world", 25.0, 64.0, 25.0, 0.0f, 0.0f);
+        final BLocatable regionA = new BLocatable("world", 50.0, 0.0, 50.0);
+        final BLocatable regionB = new BLocatable("world", -50.0, 256.0, -50.0);
 
+        final DuelArenaInstance inst = new DuelArenaInstance(UUID.randomUUID(), null,true, List.of(spawn1, spawn2), spec, new ArenaRegion(regionA, regionB));
+        final DuelArena testArena = new DuelArena("TestArena", ChatColor.YELLOW + "Test Arena", "johnsama");
+        testArena.registerInstance(inst);
+
+        arenaRepository.add(testArena);
     }
 
     private void saveArena(IArena arena) {

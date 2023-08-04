@@ -13,8 +13,8 @@ import org.bukkit.potion.PotionType;
 
 @AllArgsConstructor
 public enum EGamerule {
-    NODEBUFF(ChatColor.GOLD + "HCF (No Debuff)", Material.SPLASH_POTION),
-    DEBUFF(ChatColor.GOLD+ "HCF (Debuff)", Material.SPLASH_POTION),
+    NODEBUFF(ChatColor.RED + "No Debuff", Material.SPLASH_POTION),
+    DEBUFF(net.md_5.bungee.api.ChatColor.of(String.format("#%02x%02x%02x", PotionType.POISON.getEffectType().getColor().getRed(), PotionType.POISON.getEffectType().getColor().getGreen(), PotionType.POISON.getEffectType().getColor().getBlue())) + "Debuff", Material.SPLASH_POTION),
     GAPPLE(ChatColor.LIGHT_PURPLE + "Gapple", Material.ENCHANTED_GOLDEN_APPLE),
     VANILLA(ChatColor.DARK_PURPLE + "Vanilla", Material.NETHERITE_SWORD);
 

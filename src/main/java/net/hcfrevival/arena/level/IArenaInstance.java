@@ -13,6 +13,11 @@ public interface IArenaInstance {
     UUID getUniqueId();
 
     /**
+     * @return Owning Arena Container
+     */
+    IArena getOwner();
+
+    /**
      * @return If true, this arena can be claimed
      */
     boolean isAvailable();
@@ -37,4 +42,9 @@ public interface IArenaInstance {
      * @param b Set the Arena Instance availability state
      */
     void setAvailable(boolean b);
+
+    /**
+     * @param owner Arena owner
+     */
+    void setOwner(IArena owner);
 }

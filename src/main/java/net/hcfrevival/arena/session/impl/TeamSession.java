@@ -1,13 +1,19 @@
 package net.hcfrevival.arena.session.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import gg.hcfactions.libs.base.util.Time;
+import gg.hcfactions.libs.bukkit.utils.Players;
 import lombok.Getter;
 import lombok.Setter;
 import net.hcfrevival.arena.level.impl.TeamArenaInstance;
+import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.team.Team;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +25,7 @@ public class TeamSession implements ISession {
     @Getter public final UUID uniqueId;
     @Getter public final TeamArenaInstance arena;
     @Getter public final List<Team> teams;
-    @Getter public Set<UUID> spectators;
+    @Getter public Set<ArenaPlayer> spectators;
     @Getter @Setter public long startTimestamp;
     @Getter @Setter public long endTimestamp;
 
@@ -30,6 +36,14 @@ public class TeamSession implements ISession {
         this.spectators = Sets.newConcurrentHashSet();
         this.startTimestamp = Time.now();
         this.endTimestamp = -1L;
+    }
+
+    @Override
+    public List<ArenaPlayer> getPlayers() {
+        final List<ArenaPlayer> res = Lists.newArrayList();
+        teams.forEach(t -> res.addAll(t.getFullMembers()));
+        res.addAll(spectators);
+        return res;
     }
 
     public boolean hasWinner() {
@@ -44,5 +58,25 @@ public class TeamSession implements ISession {
         }
 
         return Optional.of(aliveTeams.get(0));
+    }
+
+    public void sendMessage(String message) {
+        getPlayers().forEach(arenaPlayer -> {
+            final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
+
+            if (player != null) {
+                player.sendMessage(message);
+            }
+        });
+    }
+
+    public void sendSound(Sound sound) {
+        getPlayers().forEach(arenaPlayer -> {
+            final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
+
+            if (player != null) {
+                Players.playSound(player, sound);
+            }
+        });
     }
 }

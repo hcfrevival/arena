@@ -1,5 +1,6 @@
 package net.hcfrevival.arena.session.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import gg.hcfactions.libs.base.util.Time;
 import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
@@ -10,6 +11,7 @@ import net.hcfrevival.arena.level.impl.DuelArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.session.ISession;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -33,6 +35,15 @@ public class DuelSession implements ISession {
         this.endTimestamp = -1L;
     }
 
+    @Override
+    public List<ArenaPlayer> getPlayers() {
+        final List<ArenaPlayer> res = Lists.newArrayList();
+        res.add(playerA);
+        res.add(playerB);
+        res.addAll(spectators);
+        return res;
+    }
+
     public boolean hasWinner() {
         return getWinner().isPresent();
     }
@@ -49,6 +60,18 @@ public class DuelSession implements ISession {
         return Optional.empty();
     }
 
+    public Optional<ArenaPlayer> getLoser() {
+        final Optional<ArenaPlayer> winnerQuery = getWinner();
+
+        if (winnerQuery.isEmpty()) {
+            return Optional.empty();
+        }
+
+        final ArenaPlayer winner = winnerQuery.get();
+        final ArenaPlayer loser = (playerA.getUniqueId().equals(winner.getUniqueId()) ? playerB : playerA);
+        return Optional.of(loser);
+    }
+
     public void teleportAll() {
         final PLocatable spawnA = arena.getSpawnpoints().get(0);
         final PLocatable spawnB = arena.getSpawnpoints().get(1);
@@ -63,4 +86,6 @@ public class DuelSession implements ISession {
             Players.resetHealth(b);
         });
     }
+
+
 }

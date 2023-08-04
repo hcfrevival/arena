@@ -3,12 +3,14 @@ package net.hcfrevival.arena.items;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import gg.hcfactions.libs.base.consumer.FailablePromise;
+import gg.hcfactions.libs.base.consumer.Promise;
 import gg.hcfactions.libs.bukkit.services.impl.items.ICustomItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.menu.KitSelectMenu;
+import net.hcfrevival.arena.queue.QueueManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -68,7 +70,19 @@ public final class RankedQueueItem implements ICustomItem {
             final KitSelectMenu menu = new KitSelectMenu(plugin, who, new FailablePromise<>() {
                 @Override
                 public void resolve(EGamerule rule) {
-                    who.sendMessage(ChatColor.GREEN + "Selected Kit: " + rule.getDisplayName());
+                    final QueueManager queueManager = (QueueManager)plugin.getManagers().get(QueueManager.class);
+
+                    queueManager.getExecutor().addToRankedQueue(who, rule, new Promise() {
+                        @Override
+                        public void resolve() {
+                            who.sendMessage("Joined Ranked " + rule.getDisplayName() + ChatColor.RESET + " Queue");
+                        }
+
+                        @Override
+                        public void reject(String s) {
+                            who.sendMessage(ChatColor.RED + "Failed to join queue: " + s);
+                        }
+                    });
                 }
 
                 @Override

@@ -1,6 +1,7 @@
 package net.hcfrevival.arena.queue.task;
 
 import com.google.common.collect.Lists;
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.Getter;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
@@ -37,7 +38,7 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
 
                 // No match, expand search
                 if (foundMatch.isEmpty()) {
-                    rankedQueueEntry.setRange(rankedQueueEntry.getRange() + 50);
+                    rankedQueueEntry.setRange(rankedQueueEntry.getRange() + 25);
                     continue;
                 }
 
@@ -56,9 +57,10 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
                     continue;
                 }
 
-                final DuelSession session = newSession.get();
-                session.getArena().setAvailable(false);
-                sessionManager.getSessionRepository().add(session);
+                new Scheduler(manager.getPlugin()).sync(() -> {
+                    final DuelSession session = newSession.get();
+                    sessionManager.startSession(session);
+                }).run();
 
                 toRemove.add(queueEntry);
                 toRemove.add(foundMatch.get());
@@ -94,9 +96,10 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
                     continue;
                 }
 
-                final DuelSession session = newSession.get();
-                session.getArena().setAvailable(false);
-                sessionManager.getSessionRepository().add(session);
+                new Scheduler(manager.getPlugin()).sync(() -> {
+                    final DuelSession session = newSession.get();
+                    sessionManager.startSession(session);
+                }).run();
             }
         }
 
