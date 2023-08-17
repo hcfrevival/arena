@@ -35,12 +35,13 @@ public final class ScoreboardUtil {
 
         playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
             applyScoreboardTemplate(arenaPlayer.getScoreboard());
-            arenaPlayer.getScoreboard().setLine(7, ChatColor.GOLD + "Online" + ChatColor.YELLOW + ": " + onlineCount);
+            arenaPlayer.getScoreboard().setLine(8, ChatColor.GOLD + "Online" + ChatColor.YELLOW + ": " + onlineCount);
+            arenaPlayer.getScoreboard().setLine(7, ChatColor.GOLD + "In-Queue" + ChatColor.YELLOW + ": " + queueManager.getQueueRepository().size());
 
             queue.ifPresentOrElse(activeQueue -> {
                 final boolean ranked = (activeQueue instanceof RankedQueueEntry);
                 arenaPlayer.getScoreboard().setLine(6, ChatColor.RESET + "" + ChatColor.RESET + "");
-                arenaPlayer.getScoreboard().setLine(5, ChatColor.GOLD + "Current Queue" + ChatColor.YELLOW + ":");
+                arenaPlayer.getScoreboard().setLine(5, ChatColor.GOLD + "Your Queue" + ChatColor.YELLOW + ":");
                 arenaPlayer.getScoreboard().setLine(4, INDENT + activeQueue.getGamerule().getDisplayName() + " " + ChatColor.GRAY + (ranked ? "(Ranked)" : "(Unranked)"));
 
                 if (ranked) {

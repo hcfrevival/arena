@@ -15,10 +15,35 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.util.Vector;
 
 public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof final Player player)) {
+            return;
+        }
+
+        final SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
+        final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+        sessionManager.getSession(player).ifPresent(session -> {
+            if (!session.isActive()) {
+                event.setCancelled(true);
+                return;
+            }
+        });
+
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (!arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)) {
+                event.setCancelled(true);
+                return;
+            }
+        });
+    }
+
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         final Player player = event.getEntity();

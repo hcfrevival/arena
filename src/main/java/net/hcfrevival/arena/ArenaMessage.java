@@ -17,6 +17,11 @@ public final class ArenaMessage {
         return ChatColor.RESET + "You are no longer in queue for " + ChatColor.GOLD + (ranked ? "Ranked" : "Unranked" + " " + ChatColor.stripColor(queue.getGamerule().getDisplayName()));
     }
 
+    public static String getInQueueMessage(IArenaQueue queue) {
+        final boolean ranked = (queue instanceof RankedQueueEntry);
+        return ChatColor.RESET + "You are currently in queue for " + queue.getGamerule().getDisplayName() + " " + ChatColor.GRAY + (ranked ? "(Ranked)" : "(Unranked)");
+    }
+
     public static String getArenaDetailMessage(IArena arena) {
         final boolean hasAuthor = (arena.getAuthors() != null && arena.getAuthors().length() > 0);
         return ChatColor.AQUA + "You are now playing " + ChatColor.AQUA + arena.getDisplayName() + (hasAuthor ? ChatColor.AQUA + " by " + ChatColor.LIGHT_PURPLE + arena.getAuthors() : "");
@@ -28,5 +33,9 @@ public final class ArenaMessage {
         }
 
         return ChatColor.AQUA + slain.getName() + ChatColor.GRAY + " died";
+    }
+
+    public static String getKitAppliedMessage(String kitName) {
+        return ChatColor.YELLOW + "Loaded Kit: " + ChatColor.BLUE + kitName;
     }
 }

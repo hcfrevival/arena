@@ -2,6 +2,7 @@ package net.hcfrevival.arena.session;
 
 import gg.hcfactions.libs.base.util.Time;
 import gg.hcfactions.libs.bukkit.utils.Players;
+import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.IArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
@@ -26,6 +27,11 @@ public interface ISession {
     IArenaInstance getArena();
 
     /**
+     * @return Session Rule set
+     */
+    EGamerule getGamerule();
+
+    /**
      * @return List of Spectators
      */
     Set<ArenaPlayer> getSpectators();
@@ -41,6 +47,11 @@ public interface ISession {
     long getEndTimestamp();
 
     /**
+     * @return Returns true if this event is active and players can be attacked
+     */
+    boolean isActive();
+
+    /**
      * Update the session start time
      * @param l Epoch millis
      */
@@ -51,6 +62,11 @@ public interface ISession {
      * @param l Epoch millis
      */
     void setEndTimestamp(long l);
+
+    /**
+     * @param b Sets the active state for this session
+     */
+    void setActive(boolean b);
 
     /**
      * Collects and returns all ArenaPlayer instances associated with this session
@@ -148,4 +164,6 @@ public interface ISession {
             }
         });
     }
+
+    void teleportAll();
 }

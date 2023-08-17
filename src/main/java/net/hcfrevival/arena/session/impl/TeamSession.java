@@ -3,9 +3,11 @@ package net.hcfrevival.arena.session.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import gg.hcfactions.libs.base.util.Time;
+import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import gg.hcfactions.libs.bukkit.utils.Players;
 import lombok.Getter;
 import lombok.Setter;
+import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.impl.TeamArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
@@ -24,18 +26,22 @@ import java.util.stream.Collectors;
 public class TeamSession implements ISession {
     @Getter public final UUID uniqueId;
     @Getter public final TeamArenaInstance arena;
+    @Getter public final EGamerule gamerule;
     @Getter public final List<Team> teams;
     @Getter public Set<ArenaPlayer> spectators;
     @Getter @Setter public long startTimestamp;
     @Getter @Setter public long endTimestamp;
+    @Getter @Setter public boolean active;
 
-    public TeamSession(TeamArenaInstance arena, List<Team> teams) {
+    public TeamSession(EGamerule gamerule, TeamArenaInstance arena, List<Team> teams) {
         this.uniqueId = UUID.randomUUID();
         this.arena = arena;
+        this.gamerule = gamerule;
         this.teams = teams;
         this.spectators = Sets.newConcurrentHashSet();
         this.startTimestamp = Time.now();
         this.endTimestamp = -1L;
+        this.active = false;
     }
 
     @Override
@@ -78,5 +84,20 @@ public class TeamSession implements ISession {
                 Players.playSound(player, sound);
             }
         });
+    }
+
+    @Override
+    public void teleportAll() {
+        int cursor = 0;
+
+        for (Team team : teams) {
+            if (arena.getSpawnpoints().size() < cursor) {
+                cursor = 0;
+            }
+
+            final PLocatable spawnpoint = arena.getSpawnpoints().get(cursor);
+            team.teleport(spawnpoint.getBukkitLocation());
+            cursor += 1;
+        }
     }
 }

@@ -19,10 +19,6 @@ import java.util.Optional;
 public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
     @Override
     public void run() {
-        /*
-            iterate over each queue, iterate again to see if there are any matches, once matched add to a list so it is exempt from future iterations
-         */
-
         final PlayerManager playerManager = (PlayerManager) manager.getPlugin().getManagers().get(PlayerManager.class);
         final SessionManager sessionManager = (SessionManager) manager.getPlugin().getManagers().get(SessionManager.class);
         final List<IArenaQueue> toRemove = Lists.newArrayList();
@@ -50,7 +46,7 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
                     return;
                 }
 
-                final Optional<RankedDuelSession> newSession = sessionManager.createRankedDuelSession(playerQueryA.get(), playerQueryB.get());
+                final Optional<RankedDuelSession> newSession = sessionManager.createRankedDuelSession(queueEntry.getGamerule(), playerQueryA.get(), playerQueryB.get());
 
                 if (newSession.isEmpty()) {
                     manager.getPlugin().getAresLogger().error("failed to generate duel session during queue processing");
@@ -89,7 +85,7 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
                 toRemove.add(queueEntry);
                 toRemove.add(foundMatch.get());
 
-                final Optional<DuelSession> newSession = sessionManager.createDuelSession(playerQueryA.get(), playerQueryB.get(), false);
+                final Optional<DuelSession> newSession = sessionManager.createDuelSession(queueEntry.getGamerule(), playerQueryA.get(), playerQueryB.get(), false);
 
                 if (newSession.isEmpty()) {
                     manager.getPlugin().getAresLogger().error("failed to generate duel session during queue processing");

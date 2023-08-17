@@ -7,6 +7,7 @@ import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import gg.hcfactions.libs.bukkit.utils.Players;
 import lombok.Getter;
 import lombok.Setter;
+import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.impl.DuelArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.session.ISession;
@@ -19,20 +20,24 @@ import java.util.UUID;
 public class DuelSession implements ISession {
     @Getter public final UUID uniqueId;
     @Getter public final DuelArenaInstance arena;
+    @Getter public final EGamerule gamerule;
     @Getter public final ArenaPlayer playerA;
     @Getter public final ArenaPlayer playerB;
     @Getter public final Set<ArenaPlayer> spectators;
+    @Getter @Setter public boolean active;
     @Getter @Setter public long startTimestamp;
     @Getter @Setter public long endTimestamp;
 
-    public DuelSession(DuelArenaInstance arena, ArenaPlayer a, ArenaPlayer b) {
+    public DuelSession(EGamerule gamerule, DuelArenaInstance arena, ArenaPlayer a, ArenaPlayer b) {
         this.uniqueId = UUID.randomUUID();
         this.arena = arena;
+        this.gamerule = gamerule;
         this.playerA = a;
         this.playerB = b;
         this.spectators = Sets.newConcurrentHashSet();
         this.startTimestamp = Time.now();
         this.endTimestamp = -1L;
+        this.active = false;
     }
 
     @Override
@@ -72,6 +77,7 @@ public class DuelSession implements ISession {
         return Optional.of(loser);
     }
 
+    @Override
     public void teleportAll() {
         final PLocatable spawnA = arena.getSpawnpoints().get(0);
         final PLocatable spawnB = arena.getSpawnpoints().get(1);

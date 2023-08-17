@@ -7,6 +7,7 @@ import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
 import net.hcfrevival.arena.command.ArenaCommand;
 import net.hcfrevival.arena.items.*;
+import net.hcfrevival.arena.kit.KitManager;
 import net.hcfrevival.arena.level.LevelManager;
 import net.hcfrevival.arena.listener.*;
 import net.hcfrevival.arena.player.PlayerManager;
@@ -45,6 +46,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerManager(new LevelManager(this));
         registerManager(new SessionManager(this));
         registerManager(new TimerManager(this));
+        registerManager(new KitManager(this));
         managers.values().forEach(ArenaManager::onEnable);
 
         // listeners

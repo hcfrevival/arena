@@ -9,6 +9,8 @@ import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.event.DuelMatchFinishEvent;
 import net.hcfrevival.arena.event.TeamMatchFinishEvent;
+import net.hcfrevival.arena.gamerule.EGamerule;
+import net.hcfrevival.arena.kit.KitManager;
 import net.hcfrevival.arena.level.LevelManager;
 import net.hcfrevival.arena.level.impl.DuelArenaInstance;
 import net.hcfrevival.arena.level.impl.TeamArenaInstance;
@@ -68,12 +70,13 @@ public final class SessionManager extends ArenaManager {
 
     /**
      * Create a new RankedDuelSession instance
+     * @param gamerule Game rule set
      * @param playerA Player A
      * @param playerB Player B
      * @return Optional of RankedDuelSession
      */
-    public Optional<RankedDuelSession> createRankedDuelSession(ArenaPlayer playerA, ArenaPlayer playerB) {
-        final Optional<DuelSession> newSession = createDuelSession(playerA, playerB, true);
+    public Optional<RankedDuelSession> createRankedDuelSession(EGamerule gamerule, ArenaPlayer playerA, ArenaPlayer playerB) {
+        final Optional<DuelSession> newSession = createDuelSession(gamerule, playerA, playerB, true);
 
         if (newSession.isEmpty()) {
             return Optional.empty();
@@ -84,12 +87,13 @@ public final class SessionManager extends ArenaManager {
 
     /**
      * Create a new DuelSession instance
+     * @param gamerule Game rule set
      * @param playerA Player A
      * @param playerB Player B
      * @param isRanked If true, the returned item will be a RankedDuelSession instance (see createRankedDuelSession)
      * @return Optional of DuelSession
      */
-    public Optional<DuelSession> createDuelSession(ArenaPlayer playerA, ArenaPlayer playerB, boolean isRanked) {
+    public Optional<DuelSession> createDuelSession(EGamerule gamerule, ArenaPlayer playerA, ArenaPlayer playerB, boolean isRanked) {
         final LevelManager levelManager = (LevelManager) plugin.getManagers().get(LevelManager.class);
         final Optional<DuelArenaInstance> instQuery = levelManager.getAvailableDuelInstance();
 
@@ -100,18 +104,19 @@ public final class SessionManager extends ArenaManager {
         final DuelArenaInstance instance = instQuery.get();
 
         if (isRanked) {
-            return Optional.of(new RankedDuelSession(instance, playerA, playerB));
+            return Optional.of(new RankedDuelSession(gamerule, instance, playerA, playerB));
         }
 
-        return Optional.of(new DuelSession(instance, playerA, playerB));
+        return Optional.of(new DuelSession(gamerule, instance, playerA, playerB));
     }
 
     /**
      * Create a new TeamSession instance
+     * @param gamerule Game rule set
      * @param teams Array of Teams involved
      * @return Optional of Team Session
      */
-    public Optional<TeamSession> createTeamSession(List<Team> teams) {
+    public Optional<TeamSession> createTeamSession(EGamerule gamerule, List<Team> teams) {
         final LevelManager levelManager = (LevelManager) plugin.getManagers().get(LevelManager.class);
         final Optional<TeamArenaInstance> instQuery = levelManager.getAvailableTeamInstance();
 
@@ -120,46 +125,50 @@ public final class SessionManager extends ArenaManager {
         }
 
         final TeamArenaInstance instance = instQuery.get();
-        final TeamSession session = new TeamSession(instance, teams);
+        final TeamSession session = new TeamSession(gamerule, instance, teams);
 
         return Optional.of(session);
     }
 
     public void startSession(ISession session) {
+        final KitManager kitManager = (KitManager) plugin.getManagers().get(KitManager.class);
+
         session.getArena().setAvailable(false);
         session.setStartTimestamp(Time.now());
+        session.teleportAll();
+
+        session.getPlayers().stream().filter(arenaPlayer -> !session.isSpectating(arenaPlayer.getUniqueId())).forEach(ingamePlayer -> {
+            ingamePlayer.setCurrentState(EPlayerState.INGAME);
+            ingamePlayer.setStatHolder(new PlayerStatHolder(ingamePlayer.getUniqueId()));
+            ingamePlayer.getPlayer().ifPresent(bukkitPlayer -> kitManager.giveKitBooks(bukkitPlayer, session.getGamerule()));
+        });
+
         sessionRepository.add(session);
 
-        if (session instanceof final DuelSession duelSession) {
-            duelSession.teleportAll();
+        // Countdown
+        for (int i = 0; i < 4; i++) {
+            final int count = (3 - i);
 
-            duelSession.getPlayerA().setCurrentState(EPlayerState.INGAME);
-            duelSession.getPlayerB().setCurrentState(EPlayerState.INGAME);
-            duelSession.getPlayerA().setStatHolder(new PlayerStatHolder(duelSession.getPlayerA().getUniqueId()));
-            duelSession.getPlayerB().setStatHolder(new PlayerStatHolder(duelSession.getPlayerB().getUniqueId()));
+            new Scheduler(plugin).sync(() -> {
+                if (count > 0) {
+                    session.sendTitle(ChatColor.GOLD + "Match Starting", ChatColor.YELLOW + "" + count + " second" + (count > 1 ? "s" : ""), 0, 30, 0);
+                    session.sendSound(Sound.BLOCK_NOTE_BLOCK_HARP);
+                    return;
+                }
 
-            for (int i = 0; i < 4; i++) {
-                final int count = (3 - i);
-
-                new Scheduler(plugin).sync(() -> {
-                    if (count > 0) {
-                        duelSession.sendTitle(ChatColor.GOLD + "Match Starting", ChatColor.YELLOW + "" + count + " second" + (count > 1 ? "s" : ""), 0, 30, 0);
-                        duelSession.sendSound(Sound.BLOCK_NOTE_BLOCK_HARP);
-                        return;
-                    }
-
-                    duelSession.sendTitle(ChatColor.GREEN + "Fight!", ChatColor.RESET + "", 0, 20, 0);
-                    duelSession.sendSound(Sound.BLOCK_NOTE_BLOCK_BANJO);
-                }).delay(i * 20L).run();
-            }
-
-            new Scheduler(plugin).sync(() ->
-                    duelSession.sendMessage(ArenaMessage.getArenaDetailMessage(duelSession.getArena().getOwner()))).delay(10 * 20L).run();
+                session.sendTitle(ChatColor.GREEN + "Fight!", ChatColor.RESET + "", 0, 20, 0);
+                session.sendSound(Sound.BLOCK_NOTE_BLOCK_BANJO);
+                session.setActive(true);
+            }).delay(i * 20L).run();
         }
+
+        new Scheduler(plugin).sync(() ->
+                session.sendMessage(ArenaMessage.getArenaDetailMessage(session.getArena().getOwner()))).delay(10 * 20L).run();
     }
 
     public void endSession(ISession session) {
         session.setEndTimestamp(Time.now());
+        session.setActive(false);
 
         new Scheduler(plugin).sync(() -> session.getPlayers().forEach(player -> {
             player.setCurrentState(EPlayerState.LOBBY);

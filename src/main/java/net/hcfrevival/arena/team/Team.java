@@ -6,6 +6,7 @@ import lombok.Getter;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -53,6 +54,16 @@ public final class Team {
 
             if (player != null) {
                 player.sendMessage(message);
+            }
+        });
+    }
+
+    public void teleport(Location loc) {
+        getFullMembers().forEach(member -> {
+            final Player player = Bukkit.getPlayer(member.getUniqueId());
+
+            if (player != null) {
+                player.teleport(loc);
             }
         });
     }

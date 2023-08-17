@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
+import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.queue.impl.IArenaQueue;
 import net.hcfrevival.arena.queue.impl.RankedQueueEntry;
@@ -41,13 +42,7 @@ public final class QueueManager extends ArenaManager {
                 final Player player = Bukkit.getPlayer(queue.getUniqueId());
 
                 if (player != null) {
-                    if (queue instanceof final RankedQueueEntry rankedQueue) {
-                        player.sendMessage("In queue message (ranked)");
-                    }
-
-                    else if (queue instanceof final UnrankedQueueEntry unrankedQueue) {
-                        player.sendMessage("In queue message (unranked)");
-                    }
+                    player.sendMessage(ArenaMessage.getInQueueMessage(queue));
                 }
             });
         }).repeat(0L, 15 * 20L).run();
