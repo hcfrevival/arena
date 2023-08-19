@@ -1,17 +1,21 @@
 package net.hcfrevival.arena.session;
 
+import gg.hcfactions.libs.acf.BaseCommand;
 import gg.hcfactions.libs.base.util.Time;
 import gg.hcfactions.libs.bukkit.utils.Players;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.IArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -47,6 +51,11 @@ public interface ISession {
     long getEndTimestamp();
 
     /**
+     * @return Time until this session will be expired from match history cache
+     */
+    long getExpire();
+
+    /**
      * @return Returns true if this event is active and players can be attacked
      */
     boolean isActive();
@@ -64,6 +73,12 @@ public interface ISession {
     void setEndTimestamp(long l);
 
     /**
+     * Update the session expire time in match history
+     * @param l Epoch millis
+     */
+    void setExpire(long l);
+
+    /**
      * @param b Sets the active state for this session
      */
     void setActive(boolean b);
@@ -73,6 +88,11 @@ public interface ISession {
      * @return List of ArenaPlayer
      */
     List<ArenaPlayer> getPlayers();
+
+    /**
+     * @return Collection of PlayerStatHolders
+     */
+    List<PlayerStatHolder> getFinalStats();
 
     /**
      * Return the time in millis this session
@@ -94,6 +114,11 @@ public interface ISession {
     default boolean isSpectating(UUID uniqueId) {
         return getSpectators().stream().anyMatch(spec -> spec.getUniqueId().equals(uniqueId));
     }
+
+    /**
+     * Teleport all players to the arena
+     */
+    void teleportAll();
 
     /**
      * Moves an ArenaPlayer to an Arena and marks them as a spectator
@@ -145,6 +170,26 @@ public interface ISession {
         });
     }
 
+    default void sendMessage(BaseComponent baseComponent) {
+        getPlayers().forEach(arenaPlayer -> {
+            final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
+
+            if (player != null) {
+                player.spigot().sendMessage(baseComponent);
+            }
+        });
+    }
+
+    default void sendMessage(BaseComponent[] parts) {
+        getPlayers().forEach(arenaPlayer -> {
+            final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
+
+            if (player != null) {
+                player.spigot().sendMessage(parts);
+            }
+        });
+    }
+
     default void sendSound(Sound sound) {
         getPlayers().forEach(arenaPlayer -> {
             final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
@@ -165,5 +210,12 @@ public interface ISession {
         });
     }
 
-    void teleportAll();
+    default void saveStats(ArenaPlayer arenaPlayer) {
+        if (arenaPlayer.getStatHolder() == null) {
+            throw new NullPointerException("Player Stat Holder is null");
+        }
+
+        getFinalStats().removeIf(existing -> existing.getOwner().equals(arenaPlayer.getUniqueId()));
+        getFinalStats().add(arenaPlayer.getStatHolder());
+    }
 }

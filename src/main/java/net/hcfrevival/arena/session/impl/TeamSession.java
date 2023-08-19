@@ -12,6 +12,7 @@ import net.hcfrevival.arena.level.impl.TeamArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.ISession;
+import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
 import net.hcfrevival.arena.team.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -28,9 +29,11 @@ public class TeamSession implements ISession {
     @Getter public final TeamArenaInstance arena;
     @Getter public final EGamerule gamerule;
     @Getter public final List<Team> teams;
-    @Getter public Set<ArenaPlayer> spectators;
+    @Getter public final Set<ArenaPlayer> spectators;
+    @Getter public final List<PlayerStatHolder> finalStats;
     @Getter @Setter public long startTimestamp;
     @Getter @Setter public long endTimestamp;
+    @Getter @Setter public long expire;
     @Getter @Setter public boolean active;
 
     public TeamSession(EGamerule gamerule, TeamArenaInstance arena, List<Team> teams) {
@@ -39,8 +42,10 @@ public class TeamSession implements ISession {
         this.gamerule = gamerule;
         this.teams = teams;
         this.spectators = Sets.newConcurrentHashSet();
+        this.finalStats = Lists.newArrayList();
         this.startTimestamp = Time.now();
         this.endTimestamp = -1L;
+        this.expire = -1L;
         this.active = false;
     }
 

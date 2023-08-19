@@ -58,6 +58,10 @@ public record StatsListener(@Getter ArenaPlugin plugin) implements Listener {
         final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
 
         playerManager.getPlayer(damager.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (arenaPlayer.getStatHolder() == null) {
+                return;
+            }
+
             arenaPlayer.getStatHolder().addTotalDamage(Math.round(event.getFinalDamage()));
             arenaPlayer.getStatHolder().addTotalHits();
             arenaPlayer.getStatHolder().addCurrentCombo();

@@ -11,6 +11,7 @@ import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.impl.DuelArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.session.ISession;
+import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +25,11 @@ public class DuelSession implements ISession {
     @Getter public final ArenaPlayer playerA;
     @Getter public final ArenaPlayer playerB;
     @Getter public final Set<ArenaPlayer> spectators;
+    @Getter public final List<PlayerStatHolder> finalStats;
     @Getter @Setter public boolean active;
     @Getter @Setter public long startTimestamp;
     @Getter @Setter public long endTimestamp;
+    @Getter @Setter public long expire;
 
     public DuelSession(EGamerule gamerule, DuelArenaInstance arena, ArenaPlayer a, ArenaPlayer b) {
         this.uniqueId = UUID.randomUUID();
@@ -35,8 +38,10 @@ public class DuelSession implements ISession {
         this.playerA = a;
         this.playerB = b;
         this.spectators = Sets.newConcurrentHashSet();
+        this.finalStats = Lists.newArrayList();
         this.startTimestamp = Time.now();
         this.endTimestamp = -1L;
+        this.expire = -1L;
         this.active = false;
     }
 
@@ -92,6 +97,4 @@ public class DuelSession implements ISession {
             Players.resetHealth(b);
         });
     }
-
-
 }

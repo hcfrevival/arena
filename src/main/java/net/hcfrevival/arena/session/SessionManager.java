@@ -25,18 +25,36 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class SessionManager extends ArenaManager {
     @Getter public final Set<ISession> sessionRepository;
+    @Getter public final Set<ISession> sessionHistory;
+    @Getter public BukkitTask matchHistoryCleanupTask;
 
     public SessionManager(ArenaPlugin plugin) {
         super(plugin);
         this.sessionRepository = Sets.newConcurrentHashSet();
+        this.sessionHistory = Sets.newConcurrentHashSet();
+    }
+
+    @Override
+    public void onEnable() {
+        matchHistoryCleanupTask = new Scheduler(plugin).async(() -> sessionHistory.removeIf(s -> s.getExpire() <= Time.now())).repeat(0L, 100L).run();
+    }
+
+    @Override
+    public void onDisable() {
+        if (matchHistoryCleanupTask != null) {
+            matchHistoryCleanupTask.cancel();
+            matchHistoryCleanupTask = null;
+        }
     }
 
     /**
@@ -66,6 +84,32 @@ public final class SessionManager extends ArenaManager {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Query a Session from Session History by Match UID
+     * @param matchUid Match UID
+     * @return Optional of ISession
+     */
+    public Optional<ISession> getSessionHistory(UUID matchUid) {
+        return sessionHistory.stream().filter(s -> s.getUniqueId().equals(matchUid)).findFirst();
+    }
+
+    /**
+     * Query a specific PlayerStatHolder from a Session in Session History by Match UID and Player Username
+     * @param matchUid Match UID
+     * @param username Bukkit Username
+     * @return Optional of PlayerStatHolder
+     */
+    public Optional<PlayerStatHolder> getSessionHistoryStats(UUID matchUid, String username) {
+        final Optional<ISession> sessionQuery = getSessionHistory(matchUid);
+
+        if (sessionQuery.isEmpty()) {
+            return Optional.empty();
+        }
+
+        final ISession session = sessionQuery.get();
+        return session.getFinalStats().stream().filter(stats -> stats.getUsername().equalsIgnoreCase(username)).findFirst();
     }
 
     /**
@@ -139,7 +183,7 @@ public final class SessionManager extends ArenaManager {
 
         session.getPlayers().stream().filter(arenaPlayer -> !session.isSpectating(arenaPlayer.getUniqueId())).forEach(ingamePlayer -> {
             ingamePlayer.setCurrentState(EPlayerState.INGAME);
-            ingamePlayer.setStatHolder(new PlayerStatHolder(ingamePlayer.getUniqueId()));
+            ingamePlayer.setStatHolder(new PlayerStatHolder(ingamePlayer.getUniqueId(), ingamePlayer.getUsername()));
             ingamePlayer.getPlayer().ifPresent(bukkitPlayer -> kitManager.giveKitBooks(bukkitPlayer, session.getGamerule()));
         });
 
@@ -172,8 +216,6 @@ public final class SessionManager extends ArenaManager {
 
         new Scheduler(plugin).sync(() -> session.getPlayers().forEach(player -> {
             player.setCurrentState(EPlayerState.LOBBY);
-
-            Bukkit.broadcastMessage(player.getStatHolder().toString());
             player.setStatHolder(null);
         })).delay(3 * 20L).run();
 
@@ -189,17 +231,15 @@ public final class SessionManager extends ArenaManager {
             }
 
             final ArenaPlayer winner = winnerQuery.get();
+            session.saveStats(winner);
+
             final ArenaPlayer loser = loserQuery.get();
+
             final DuelMatchFinishEvent finishEvent = new DuelMatchFinishEvent(duelSession, winner, loser);
-
             Bukkit.getPluginManager().callEvent(finishEvent);
-
-            sessionRepository.remove(session);
-
-            return;
         }
 
-        if (session instanceof final TeamSession teamSession) {
+        else if (session instanceof final TeamSession teamSession) {
             final Optional<Team> winnerQuery = teamSession.getWinner();
 
             if (winnerQuery.isEmpty()) {
@@ -208,10 +248,16 @@ public final class SessionManager extends ArenaManager {
             }
 
             final Team winner = winnerQuery.get();
+            winner.getMembersByState(EPlayerState.INGAME).forEach(session::saveStats);
+
             final List<Team> losers = teamSession.getTeams().stream().filter(t -> !t.getUniqueId().equals(winner.getUniqueId())).collect(Collectors.toList());
             final TeamMatchFinishEvent finishEvent = new TeamMatchFinishEvent(teamSession, winner, losers);
 
             Bukkit.getPluginManager().callEvent(finishEvent);
         }
+
+        sessionRepository.remove(session);
+        session.setExpire(Time.now() + (300 * 1000L));
+        sessionHistory.add(session);
     }
 }

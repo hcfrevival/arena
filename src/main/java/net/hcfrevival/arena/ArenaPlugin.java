@@ -6,6 +6,8 @@ import gg.hcfactions.libs.bukkit.AresPlugin;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
 import net.hcfrevival.arena.command.ArenaCommand;
+import net.hcfrevival.arena.command.KitCommand;
+import net.hcfrevival.arena.command.MatchCommand;
 import net.hcfrevival.arena.items.*;
 import net.hcfrevival.arena.kit.KitManager;
 import net.hcfrevival.arena.level.LevelManager;
@@ -32,6 +34,8 @@ public final class ArenaPlugin extends AresPlugin {
         cis.registerNewItem(new LeaveQueueItem(this));
         cis.registerNewItem(new EditKitItem());
         cis.registerNewItem(new CreatePartyItem());
+        cis.registerNewItem(new CustomKitBook(this));
+        cis.registerNewItem(new DefaultKitBook(this));
         registerService(cis);
         registerService(new CXService(this));
 
@@ -39,6 +43,8 @@ public final class ArenaPlugin extends AresPlugin {
 
         // commands
         registerCommand(new ArenaCommand(this));
+        registerCommand(new MatchCommand(this));
+        registerCommand(new KitCommand(this));
 
         // managers
         registerManager(new PlayerManager(this));

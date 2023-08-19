@@ -87,6 +87,10 @@ public final class ScoreboardUtil {
             arenaPlayer.getScoreboard().setLine(5, ChatColor.GOLD + session.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + pingB + "ms");
             arenaPlayer.getScoreboard().setLine(6, ChatColor.RESET + "" + ChatColor.RESET);
             arenaPlayer.getScoreboard().setLine(7, ChatColor.GOLD + "Match Duration" + ChatColor.YELLOW + ": " + sessionDuration);
+
+            for (int i = 8; i < 62; i++) {
+                arenaPlayer.getScoreboard().removeLine(i);
+            }
         });
     }
 

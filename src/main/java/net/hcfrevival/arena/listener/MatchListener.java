@@ -5,8 +5,12 @@ import gg.hcfactions.libs.bukkit.utils.Worlds;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.event.DuelMatchFinishEvent;
+import net.hcfrevival.arena.event.MatchFinishEvent;
+import net.hcfrevival.arena.event.TeamMatchFinishEvent;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
@@ -14,12 +18,56 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 
 public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
+    private void handleDeath(Player player, Player killer, boolean disconnect) {
+        final SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
+        final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+        sessionManager.getSession(player).ifPresent(session -> {
+            if (!disconnect) {
+                session.sendMessage(ArenaMessage.getArenaDeathMessage(player, killer));
+            }
+
+            playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+                arenaPlayer.getStatHolder().storeFinalAttributes(player);
+                session.saveStats(arenaPlayer);
+            });
+
+            if (session instanceof final DuelSession duelSession) {
+                playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> arenaPlayer.setCurrentState(EPlayerState.SPECTATE_DEAD));
+
+                if (duelSession.hasWinner() || disconnect) {
+                    sessionManager.endSession(duelSession);
+                }
+            }
+
+            else if (session instanceof final TeamSession teamSession) {
+                playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> arenaPlayer.setCurrentState(EPlayerState.SPECTATE_DEAD));
+
+                if (teamSession.hasWinner()) {
+                    sessionManager.endSession(teamSession);
+                }
+            }
+        });
+    }
+
+    @EventHandler
+    public void onMatchFinish(DuelMatchFinishEvent event) {
+        ArenaMessage.printMatchComplete(event.getSession());
+    }
+
+    @EventHandler
+    public void onTeamMatchFinish(TeamMatchFinishEvent event) {
+        ArenaMessage.printMatchComplete(event.getSession());
+    }
+
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof final Player player)) {
@@ -44,17 +92,21 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
         });
     }
 
+    @EventHandler (priority = EventPriority.LOWEST)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        final Player player = event.getPlayer();
+        final Player killer = player.getKiller();
+
+        handleDeath(player, killer, true);
+    }
+
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         final Player player = event.getEntity();
         final Player killer = player.getKiller();
         final Location deathLocation = player.getLocation();
-        final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
-        final SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
 
         event.setDeathMessage(null);
-
-        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> arenaPlayer.getStatHolder().storeFinalAttributes(player));
 
         new Scheduler(plugin).sync(() -> {
             player.spigot().respawn();
@@ -63,28 +115,6 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
             Worlds.playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE);
         }).delay(1L).run();
 
-        sessionManager.getSession(player).ifPresent(session -> {
-            session.sendMessage(ArenaMessage.getArenaDeathMessage(player, killer));
-
-            if (session instanceof final DuelSession duelSession) {
-                playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
-                    arenaPlayer.setCurrentState(EPlayerState.SPECTATE_DEAD);
-                });
-
-                if (duelSession.hasWinner()) {
-                    sessionManager.endSession(duelSession);
-                }
-            }
-
-            else if (session instanceof final TeamSession teamSession) {
-                playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
-                    arenaPlayer.setCurrentState(EPlayerState.SPECTATE_DEAD);
-                });
-
-                if (teamSession.hasWinner()) {
-                    sessionManager.endSession(teamSession);
-                }
-            }
-        });
+        handleDeath(player, killer, false);
     }
 }

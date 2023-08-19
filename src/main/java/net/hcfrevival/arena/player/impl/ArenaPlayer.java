@@ -49,8 +49,10 @@ public final class ArenaPlayer {
     }
 
     public void setCurrentState(EPlayerState state) {
-        final PlayerStateChangeEvent changeEvent = new PlayerStateChangeEvent(getPlayer().get(), currentState, state);
-        Bukkit.getPluginManager().callEvent(changeEvent);
+        getPlayer().ifPresent(bukkitPlayer -> {
+            final PlayerStateChangeEvent changeEvent = new PlayerStateChangeEvent(bukkitPlayer, currentState, state);
+            Bukkit.getPluginManager().callEvent(changeEvent);
+        });
 
         currentState = state;
     }

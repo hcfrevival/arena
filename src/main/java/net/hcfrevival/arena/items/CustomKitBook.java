@@ -11,6 +11,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 import java.util.Map;
@@ -53,5 +56,18 @@ public record CustomKitBook(@Getter ArenaPlugin plugin) implements ICustomItem {
                     kitManager.getPlayerKit(who, session.getGamerule())).ifPresent(playerKit ->
                         playerKit.apply(who, true));
         };
+    }
+
+    @Override
+    public ItemStack getItem() {
+        final ItemStack item = ICustomItem.super.getItem();
+        final ItemMeta meta = item.getItemMeta();
+
+        if (meta != null) {
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+        }
+
+        item.setItemMeta(meta);
+        return item;
     }
 }

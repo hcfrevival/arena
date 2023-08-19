@@ -14,6 +14,7 @@ import java.util.UUID;
 
 public final class PlayerStatHolder implements IStatHolder {
     @Getter public final UUID owner;
+    @Getter public final String username;
     @Getter @Setter public long sprintResetHits;
     @Getter @Setter public long totalDamage;
     @Getter @Setter public long biggestCombo;
@@ -25,8 +26,9 @@ public final class PlayerStatHolder implements IStatHolder {
     @Getter public final List<PotionEffect> potionEffects;
     @Getter public final List<Double> potionAccuracyValues;
 
-    public PlayerStatHolder(UUID owner) {
+    public PlayerStatHolder(UUID owner, String username) {
         this.owner = owner;
+        this.username = username;
         this.sprintResetHits = 0;
         this.totalDamage = 0;
         this.biggestCombo = 0;

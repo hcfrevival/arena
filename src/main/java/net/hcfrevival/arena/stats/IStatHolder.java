@@ -23,6 +23,14 @@ public interface IStatHolder {
         return 0.0;
     }
 
+    default double getSprintResetAccuracy() {
+        if (getTotalHits() <= 0) {
+            return 0.0;
+        }
+
+        return (getSprintResetHits() * 100 / getTotalHits());
+    }
+
     void setSprintResetHits(long l);
     void setTotalHits(long l);
     void setTotalDamage(long l);
