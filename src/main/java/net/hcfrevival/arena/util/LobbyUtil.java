@@ -26,4 +26,17 @@ public final class LobbyUtil {
         final CustomItemService cis = (CustomItemService) plugin.getService(CustomItemService.class);
         cis.getItem(LeaveQueueItem.class).ifPresent(leaveQueueItem -> player.getInventory().setItem(4, leaveQueueItem.getItem()));
     }
+
+    public static void givePartyLeaderItems(ArenaPlugin plugin, Player player) {
+        Players.resetHealth(player);
+        player.getInventory().clear();
+
+        final CustomItemService cis = (CustomItemService) plugin.getService(CustomItemService.class);
+        cis.getItem(DisbandTeamItem.class).ifPresent(disbandItem -> player.getInventory().setItem(8, disbandItem.getItem()));
+        cis.getItem(TeamListItem.class).ifPresent(teamListItem -> player.getInventory().setItem(4, teamListItem.getItem()));
+    }
+
+    public static void givePartyMemberItems(ArenaPlugin plugin, Player player) {
+
+    }
 }

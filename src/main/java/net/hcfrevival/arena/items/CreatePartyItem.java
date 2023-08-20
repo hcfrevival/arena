@@ -3,6 +3,13 @@ package net.hcfrevival.arena.items;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import gg.hcfactions.libs.bukkit.services.impl.items.ICustomItem;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.player.PlayerManager;
+import net.hcfrevival.arena.player.impl.ArenaPlayer;
+import net.hcfrevival.arena.team.TeamManager;
+import net.hcfrevival.arena.team.impl.Team;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -13,8 +20,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+@AllArgsConstructor
 public final class CreatePartyItem implements ICustomItem {
+    @Getter public ArenaPlugin plugin;
+
     @Override
     public Material getMaterial() {
         return Material.NAME_TAG;
@@ -54,7 +65,18 @@ public final class CreatePartyItem implements ICustomItem {
 
     @Override
     public Runnable getRightClick(Player who) {
-        return () -> who.sendMessage("createParty");
+        return () -> {
+            final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+            final TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
+            final Optional<ArenaPlayer> playerQuery = playerManager.getPlayer(who.getUniqueId());
+
+            if (playerQuery.isEmpty()) {
+                who.sendMessage(ChatColor.RED + "Failed to load your Arena Player data");
+                return;
+            }
+
+            teamManager.createTeam(playerQuery.get());
+        };
     }
 }
 

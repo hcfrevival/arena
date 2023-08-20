@@ -12,6 +12,8 @@ import net.hcfrevival.arena.timer.impl.ArenaTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.util.Optional;
 import java.util.Set;
@@ -34,6 +36,17 @@ public final class ArenaPlayer {
         this.scoreboard = new AresScoreboard(plugin, player, ChatColor.GOLD + "" + ChatColor.BOLD + "Arena");
         this.statHolder = null;
         this.timers = Sets.newConcurrentHashSet();
+
+        initScoreboard();
+    }
+
+    private void initScoreboard() {
+        final Scoreboard internal = scoreboard.getInternal();
+        final Team friendly = internal.registerNewTeam("friendly");
+
+        friendly.setColor(ChatColor.GREEN);
+        friendly.setCanSeeFriendlyInvisibles(true);
+        friendly.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
     }
 
     public boolean isInLobby() {
@@ -80,5 +93,42 @@ public final class ArenaPlayer {
         }
 
         timers.remove(timer);
+    }
+
+    public void addFriendly(Player otherPlayer) {
+        final Scoreboard internal = scoreboard.getInternal();
+        Team friendly = internal.getTeam("friendly");
+
+        if (friendly == null) {
+            return;
+        }
+
+        if (friendly.hasEntry(otherPlayer.getName())) {
+            return;
+        }
+
+        friendly.addEntry(otherPlayer.getName());
+    }
+
+    public void removeFriendly(Player otherPlayer) {
+        final Scoreboard internal = scoreboard.getInternal();
+        final Team friendly = internal.getTeam("friendly");
+
+        if (friendly == null) {
+            return;
+        }
+
+        friendly.removeEntry(otherPlayer.getName());
+    }
+
+    public void clearFriendlies() {
+        final Scoreboard internal = scoreboard.getInternal();
+        final Team friendly = internal.getTeam("friendly");
+
+        if (friendly == null) {
+            return;
+        }
+
+        friendly.getEntries().forEach(friendly::removeEntry);
     }
 }

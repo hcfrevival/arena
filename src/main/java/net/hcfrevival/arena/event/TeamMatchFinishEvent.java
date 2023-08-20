@@ -2,7 +2,7 @@ package net.hcfrevival.arena.event;
 
 import lombok.Getter;
 import net.hcfrevival.arena.session.ISession;
-import net.hcfrevival.arena.team.Team;
+import net.hcfrevival.arena.team.impl.Team;
 
 import java.util.List;
 

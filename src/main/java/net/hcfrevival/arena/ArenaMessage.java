@@ -11,7 +11,7 @@ import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.RankedDuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
-import net.hcfrevival.arena.team.Team;
+import net.hcfrevival.arena.team.impl.Team;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.ChatColor;

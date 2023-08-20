@@ -13,7 +13,7 @@ import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
-import net.hcfrevival.arena.team.Team;
+import net.hcfrevival.arena.team.impl.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;

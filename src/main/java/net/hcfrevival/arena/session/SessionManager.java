@@ -20,7 +20,7 @@ import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.RankedDuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
-import net.hcfrevival.arena.team.Team;
+import net.hcfrevival.arena.team.impl.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
