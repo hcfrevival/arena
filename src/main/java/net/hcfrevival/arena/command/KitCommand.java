@@ -20,10 +20,6 @@ import java.util.Arrays;
 public final class KitCommand extends BaseCommand {
     @Getter public final ArenaPlugin plugin;
 
-    /*
-        /kit save NO_DEBUFF [-d]
-     */
-
     @Subcommand("load")
     @Description("Load a kit")
     @Syntax("<gamerule> [-d]")

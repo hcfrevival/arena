@@ -1,9 +1,12 @@
 package net.hcfrevival.arena.listener;
 
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import gg.hcfactions.libs.bukkit.utils.Players;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.event.PlayerStateChangeEvent;
+import net.hcfrevival.arena.kit.KitManager;
+import net.hcfrevival.arena.kit.impl.PlayerKit;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
@@ -24,8 +27,12 @@ public record PlayerDataListener(@Getter ArenaPlugin plugin) implements Listener
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
+
         final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
         playerManager.getPlayerRepository().add(new ArenaPlayer(plugin, player));
+
+        final KitManager kitManager = (KitManager) plugin.getManagers().get(KitManager.class);
+        new Scheduler(plugin).async(() -> kitManager.loadPlayerKits(player)).run();
     }
 
     /**
@@ -35,8 +42,12 @@ public record PlayerDataListener(@Getter ArenaPlugin plugin) implements Listener
     @EventHandler (priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
         final Player player = event.getPlayer();
+
         final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
         playerManager.getPlayerRepository().removeIf(ap -> ap.getUniqueId().equals(player.getUniqueId()));
+
+        final KitManager kitManager = (KitManager) plugin.getManagers().get(KitManager.class);
+        kitManager.getKitRepository().removeIf(k -> k instanceof final PlayerKit playerKit && playerKit.getOwnerId().equals(player.getUniqueId()));
     }
 
     @EventHandler

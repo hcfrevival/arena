@@ -21,10 +21,14 @@ import java.util.Map;
 
 public final class ArenaPlugin extends AresPlugin {
     @Getter public Map<Class<? extends ArenaManager>, ArenaManager> managers;
+    @Getter public ArenaConfig configuration;
 
     @Override
     public void onEnable() {
         super.onEnable();
+
+        configuration = new ArenaConfig(this);
+        configuration.load();
 
         // services
         // custom item service

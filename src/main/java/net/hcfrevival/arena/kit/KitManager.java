@@ -16,26 +16,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 public final class KitManager extends ArenaManager {
     @Getter public final Set<IArenaKit> kitRepository;
-
-    /*
-        player_kits/johnsama.yml
-            data:
-                NO_DEBUFF:
-                    <data>
-                DEBUFF:
-                    <data>
-        default_kits.yml
-            NO_DEBUFF:
-                <data>
-            DEBUFF:
-                <data>
-     */
 
     public KitManager(ArenaPlugin plugin) {
         super(plugin);
@@ -103,6 +91,24 @@ public final class KitManager extends ArenaManager {
         plugin.getAresLogger().info("Loaded " + loaded + " Default Kits");
     }
 
+    public void loadPlayerKits(Player player) {
+        final File file = new File(plugin.getDataFolder() + File.separator + "player_kits" + File.separator + player.getUniqueId() + ".yml");
+
+        if (!file.exists()) {
+            return;
+        }
+
+        final YamlConfiguration conf = YamlConfiguration.loadConfiguration(file);
+
+        for (String gameruleName : Objects.requireNonNull(conf.getConfigurationSection("data")).getKeys(false)) {
+            final EGamerule gamerule = EGamerule.valueOf(gameruleName);
+            final List<ItemStack> contents = (List<ItemStack>)conf.getList("data." + gameruleName + ".contents");
+            final List<ItemStack> armor = (List<ItemStack>)conf.getList("data." + gameruleName + ".armor");
+            final PlayerKit playerKit = new PlayerKit(player.getUniqueId(), gamerule, contents, armor);
+            kitRepository.add(playerKit);
+        }
+    }
+
     public void saveDefaultKit(DefaultKit kit) {
         kitRepository.removeIf(k -> k instanceof final DefaultKit defaultKit && defaultKit.getGamerule().equals(kit.getGamerule()));
         kitRepository.add(kit);
@@ -116,6 +122,8 @@ public final class KitManager extends ArenaManager {
     }
 
     public void savePlayerKit(Player player, PlayerKit kit) {
+        createPlayerFile(player);
+
         kitRepository.removeIf(k -> k instanceof final PlayerKit playerKit && playerKit.getGamerule().equals(kit.getGamerule()));
         kitRepository.add(kit);
 
@@ -125,5 +133,63 @@ public final class KitManager extends ArenaManager {
         conf.set("data." + kit.getGamerule().name() + ".contents", kit.getContents());
 
         plugin.saveConfiguration(File.separator + "player_kits" + File.separator + player.getUniqueId().toString(), conf);
+    }
+
+    public void deleteDefaultKit(EGamerule gamerule) {
+        kitRepository.removeIf(k -> k instanceof final DefaultKit defaultKit && defaultKit.getGamerule().equals(gamerule));
+
+        final YamlConfiguration conf = plugin.loadConfiguration("default_kits");
+        conf.set("data." + gamerule.name(), null);
+        plugin.saveConfiguration("default_kits", conf);
+    }
+
+    public void deletePlayerKit(Player player, EGamerule gamerule) {
+        kitRepository.removeIf(k -> k instanceof final PlayerKit playerKit && playerKit.getOwnerId().equals(player.getUniqueId()) && playerKit.getGamerule().equals(gamerule));
+
+        final File file = new File(plugin.getDataFolder() + File.separator + "player_kits" + File.separator + player.getUniqueId() + ".yml");
+        final YamlConfiguration conf = getPlayerFile(player);
+
+        if (conf == null) {
+            return;
+        }
+
+        conf.set("data." + gamerule.name(), null);
+
+        try {
+            conf.save(file);
+        } catch (IOException e) {
+            plugin.getAresLogger().error("Failed to save player kit file", e);
+        }
+    }
+
+    private YamlConfiguration getPlayerFile(Player player) {
+        final File file = new File(plugin.getDataFolder() + File.separator + "player_kits" + File.separator + player.getUniqueId() + ".yml");
+
+        if (!file.exists()) {
+            return null;
+        }
+
+        return YamlConfiguration.loadConfiguration(file);
+    }
+
+    private void createPlayerFile(Player player) {
+        final File folder = new File(plugin.getDataFolder() + File.separator + "player_kits" + File.separator);
+        final File file = new File(plugin.getDataFolder() + File.separator + "player_kits" + File.separator + player.getUniqueId() + ".yml");
+
+        if (!folder.exists()) {
+            if (folder.mkdirs()) {
+                plugin.getAresLogger().info("Created Player Kits directory");
+            }
+        }
+
+        if (!file.exists()) {
+            try {
+                if (file.createNewFile()) {
+                    plugin.getAresLogger().info("Created a kit file for " + player.getName());
+                }
+            } catch (IOException e) {
+                plugin.getAresLogger().error("Failed to create Player Kit file for: " + player.getName());
+            }
+        }
     }
 }
