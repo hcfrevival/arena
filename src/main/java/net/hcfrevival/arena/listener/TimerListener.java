@@ -1,8 +1,11 @@
 package net.hcfrevival.arena.listener;
 
+import gg.hcfactions.libs.base.util.Strings;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.event.ArenaTimerExpireEvent;
+import net.hcfrevival.arena.event.MatchFinishEvent;
 import net.hcfrevival.arena.event.PlayerStateChangeEvent;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.EPlayerState;
@@ -13,6 +16,7 @@ import net.hcfrevival.arena.timer.ETimerType;
 import net.hcfrevival.arena.timer.impl.ArenaTimer;
 import net.hcfrevival.arena.util.ScoreboardUtil;
 import org.bukkit.Material;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,6 +31,10 @@ public record TimerListener(@Getter ArenaPlugin plugin) implements Listener {
             return;
         }
 
+        if (!(event.getEntity() instanceof EnderPearl)) {
+            return;
+        }
+
         final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
 
         playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
@@ -38,7 +46,7 @@ public record TimerListener(@Getter ArenaPlugin plugin) implements Listener {
                 return;
             }
 
-            arenaPlayer.addTimer(new ArenaTimer(ETimerType.ENDERPEARL, 16)); // TODO: Make configurable
+            arenaPlayer.addTimer(new ArenaTimer(arenaPlayer, ETimerType.ENDERPEARL, 16)); // TODO: Make configurable
         });
     }
 
@@ -58,8 +66,29 @@ public record TimerListener(@Getter ArenaPlugin plugin) implements Listener {
                     return;
                 }
 
-                arenaPlayer.addTimer(new ArenaTimer(ETimerType.CRAPPLE, 45));
+                arenaPlayer.addTimer(new ArenaTimer(arenaPlayer, ETimerType.CRAPPLE, 45));
             });
+        }
+    }
+
+    @EventHandler
+    public void onTimerExpire(ArenaTimerExpireEvent event) {
+        event.getTimer().getOwner().getScoreboard().removeLine(event.getTimer().getType().getScoreboardPosition());
+        event.getPlayer().sendMessage(ArenaMessage.getItemUnlockedMessage(Strings.capitalize(event.getTimer().getType().name().toLowerCase().replaceAll("_", " "))));
+
+        if (event.getTimer().getOwner().getTimers().isEmpty()) {
+            event.getTimer().getOwner().getScoreboard().removeLine(ScoreboardUtil.TIMER_SPACE_POS);
+        }
+    }
+
+    @EventHandler
+    public void onMatchFinishFlushTimers(MatchFinishEvent event) {
+        if (event.getSession() instanceof DuelSession duelSession) {
+            duelSession.getPlayers().forEach(arenaPlayer -> arenaPlayer.getTimers().clear());
+        }
+
+        else if (event.getSession() instanceof TeamSession teamSession) {
+            teamSession.getPlayers().forEach(arenaPlayer -> arenaPlayer.getTimers().clear());
         }
     }
 

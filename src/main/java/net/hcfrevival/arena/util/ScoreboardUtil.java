@@ -5,12 +5,14 @@ import gg.hcfactions.libs.base.util.Time;
 import gg.hcfactions.libs.bukkit.scoreboard.AresScoreboard;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
+import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.queue.impl.IArenaQueue;
 import net.hcfrevival.arena.queue.impl.RankedQueueEntry;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
+import net.hcfrevival.arena.timer.ETimerType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -18,6 +20,73 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 
 public final class ScoreboardUtil {
+    /**
+     * 63 --------------------
+     * 62
+     * 61
+     * 60
+     * 59
+     * 58
+     * 57
+     * 56
+     * 55
+     * 54
+     * 53
+     * 52
+     * 51
+     * 50
+     * 49
+     * 48
+     * 47
+     * 46
+     * 45
+     * 44
+     * 43
+     * 42
+     * 41
+     * 40
+     * 39
+     * 38
+     * 37
+     * 36
+     * 35
+     * 34
+     * 33
+     * 32
+     * 31
+     * 30
+     * 29
+     * 28
+     * 27
+     * 26
+     * 25
+     * 24
+     * 23
+     * 22
+     * 21
+     * 20
+     * 19
+     * 18
+     * 17
+     * 16
+     * 15
+     * 14
+     * 13 Enderpearl
+     * 12 Crapple
+     * 11 <blank space>
+     * 10 <lobby reserved>
+     * 9 <lobby reserved>
+     * 8 <lobby reserved>
+     * 7 <lobby reserved>
+     * 6 <lobby reserved>
+     * 5 <lobby reserved>
+     * 4 <lobby reserved>
+     * 3 <lobby reserved>
+     * 2 <blank space>
+     * 1 play.hcfrevival.net
+     * 0 -------------------------
+     */
+    public static final int TIMER_SPACE_POS = 11;
     private static final String INDENT = ChatColor.RESET + " " + ChatColor.RESET + " ";
 
     private static void applyScoreboardTemplate(AresScoreboard scoreboard) {
@@ -25,6 +94,20 @@ public final class ScoreboardUtil {
         scoreboard.setLine(2, ChatColor.RESET + " ");
         scoreboard.setLine(1, ChatColor.RED + "" + ChatColor.BOLD + "play.hcfrevival.net");
         scoreboard.setLine(63, ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + Strings.repeat("-", 24));
+    }
+
+    public static void applyCooldownsToScoreboard(ArenaPlayer arenaPlayer) {
+        if (!arenaPlayer.getTimers().isEmpty()) {
+            arenaPlayer.getScoreboard().setLine(TIMER_SPACE_POS, ChatColor.RESET + " " + ChatColor.RESET + " " + ChatColor.RESET + " ");
+        }
+
+        arenaPlayer.getTimers().forEach(timer -> {
+            final String time = (timer.getRemainingSeconds() < 10)
+                    ? Time.convertToDecimal(timer.getRemaining()) + "s"
+                    : Time.convertToHHMMSS(timer.getRemaining());
+
+            arenaPlayer.getScoreboard().setLine(timer.getType().getScoreboardPosition(), timer.getType().getDisplayName() + ChatColor.RED + ": " + time);
+        });
     }
 
     public static void sendLobbyScoreboard(ArenaPlugin plugin, Player player) {
@@ -83,15 +166,12 @@ public final class ScoreboardUtil {
 
         playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
             applyScoreboardTemplate(arenaPlayer.getScoreboard());
+            applyCooldownsToScoreboard(arenaPlayer);
 
             arenaPlayer.getScoreboard().setLine(4, ChatColor.GOLD + session.getPlayerA().getUsername() + ChatColor.YELLOW + ": " + pingA + "ms");
             arenaPlayer.getScoreboard().setLine(5, ChatColor.GOLD + session.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + pingB + "ms");
             arenaPlayer.getScoreboard().setLine(6, ChatColor.RESET + "" + ChatColor.RESET);
             arenaPlayer.getScoreboard().setLine(7, ChatColor.GOLD + "Match Duration" + ChatColor.YELLOW + ": " + sessionDuration);
-
-            for (int i = 8; i < 62; i++) {
-                arenaPlayer.getScoreboard().removeLine(i);
-            }
         });
     }
 

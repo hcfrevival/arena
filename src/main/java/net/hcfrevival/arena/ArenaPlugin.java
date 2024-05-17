@@ -58,6 +58,13 @@ public final class ArenaPlugin extends AresPlugin {
         registerConnectable(mdb);
         registerConnectable(redis);
 
+        // commands
+        registerCommandManager(new PaperCommandManager(this));
+        registerCommand(new ArenaCommand(this));
+        registerCommand(new MatchCommand(this));
+        registerCommand(new KitCommand(this));
+        registerCommand(new TeamCommand(this));
+
         // services
         // custom item service
         final CustomItemService cis = new CustomItemService(this, namespacedKey);
@@ -73,15 +80,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerService(cis);
         registerService(new CXService(this));
         registerService(new AccountService(this, configuration.getMongoDatabaseName()));
-
         startServices();
-
-        // commands
-        registerCommandManager(new PaperCommandManager(this));
-        registerCommand(new ArenaCommand(this));
-        registerCommand(new MatchCommand(this));
-        registerCommand(new KitCommand(this));
-        registerCommand(new TeamCommand(this));
 
         // managers
         registerManager(new PlayerManager(this));
@@ -100,6 +99,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerListener(new SpectatorListener(this));
         registerListener(new MatchListener(this));
         registerListener(new StatsListener(this));
+        registerListener(new TimerListener(this));
     }
 
     @Override

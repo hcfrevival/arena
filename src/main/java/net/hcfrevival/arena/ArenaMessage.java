@@ -12,6 +12,8 @@ import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.RankedDuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
 import net.hcfrevival.arena.team.impl.Team;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.ChatColor;
@@ -55,6 +57,10 @@ public final class ArenaMessage {
 
     public static String getItemLockedMessage(String itemName, long remainingDuration) {
          return ChatColor.RED + "Your " + ChatColor.RED + "" + ChatColor.BOLD + itemName + ChatColor.RED + " for " + Time.convertToDecimal(remainingDuration);
+    }
+
+    public static Component getItemUnlockedMessage(String itemName) {
+        return Component.text("Your " + itemName + " has been unlocked", NamedTextColor.GREEN);
     }
 
     public static void printMatchComplete(ISession session) {

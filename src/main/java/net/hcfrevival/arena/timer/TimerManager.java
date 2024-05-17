@@ -5,10 +5,12 @@ import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.timer.task.ScoreboardUpdateTask;
+import net.hcfrevival.arena.timer.task.TimerUpdateTask;
 import org.bukkit.scheduler.BukkitTask;
 
 public final class TimerManager extends ArenaManager {
     @Getter public BukkitTask uiTask;
+    @Getter public BukkitTask timerTask;
 
     public TimerManager(ArenaPlugin plugin) {
         super(plugin);
@@ -19,6 +21,7 @@ public final class TimerManager extends ArenaManager {
         super.onEnable();
 
         uiTask = new Scheduler(plugin).async(new ScoreboardUpdateTask(this)).repeat(0L, 1L).run();
+        timerTask = new Scheduler(plugin).async(new TimerUpdateTask(this)).repeat(0L, 1L).run();
     }
 
     @Override
