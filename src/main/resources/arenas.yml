@@ -1,0 +1,40 @@
+data:
+  example:
+    display_name: 'Test Arena'
+    team: true
+    authors: 'johnsama'
+    instances:
+      013730f2-a993-4232-8e66-1200d77efbce:
+        spectator_spawnpoint:
+          x: 0.0
+          y: 0.0
+          z: 0.0
+          yaw: 0.0
+          pitch: 0.0
+          world: 'world'
+        spawnpoints:
+          c7a54f5c-8c6a-4462-b21e-07702eb38963:
+            x: 0.0
+            y: 0.0
+            z: 0.0
+            yaw: 0.0
+            pitch: 0.0
+            world: 'world'
+          26954698-a4a7-4255-a512-fd80d68573e4:
+            x: 0.0
+            y: 0.0
+            z: 0.0
+            yaw: 0.0
+            pitch: 0.0
+            world: 'world'
+        region:
+          a:
+            x: 0.0
+            y: 0.0
+            z: 0.0
+            world: 'world'
+          b:
+            x: 0.0
+            y: 0.0
+            z: 0.0
+            world: 'world'

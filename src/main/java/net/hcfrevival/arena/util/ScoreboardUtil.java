@@ -12,7 +12,6 @@ import net.hcfrevival.arena.queue.impl.RankedQueueEntry;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
-import net.hcfrevival.arena.timer.ETimerType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

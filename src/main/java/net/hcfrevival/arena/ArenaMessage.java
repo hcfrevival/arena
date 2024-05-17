@@ -14,6 +14,7 @@ import net.hcfrevival.arena.session.impl.TeamSession;
 import net.hcfrevival.arena.team.impl.Team;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.ChatColor;
@@ -38,9 +39,15 @@ public final class ArenaMessage {
         return ChatColor.RESET + "You are currently in queue for " + queue.getGamerule().getDisplayName() + " " + ChatColor.GRAY + (ranked ? "(Ranked)" : "(Unranked)");
     }
 
-    public static String getArenaDetailMessage(IArena arena) {
-        final boolean hasAuthor = (arena.getAuthors() != null && arena.getAuthors().length() > 0);
-        return ChatColor.AQUA + "You are now playing " + ChatColor.AQUA + arena.getDisplayName() + (hasAuthor ? ChatColor.AQUA + " by " + ChatColor.LIGHT_PURPLE + arena.getAuthors() : "");
+    public static Component getArenaDetailMessage(IArena arena) {
+        boolean hasAuthor = (arena.getAuthors() != null && !arena.getAuthors().isEmpty());
+        Component component = Component.text("You are now playing", NamedTextColor.AQUA).appendSpace().append(arena.getDisplayName());
+
+        if (hasAuthor) {
+            component = component.appendSpace().append(Component.text("by", NamedTextColor.AQUA).appendSpace().append(Component.text(arena.getAuthors(), NamedTextColor.LIGHT_PURPLE)));
+        }
+
+        return component;
     }
 
     public static String getArenaDeathMessage(Player slain, Player killer) {
@@ -64,23 +71,25 @@ public final class ArenaMessage {
     }
 
     public static void printMatchComplete(ISession session) {
-        session.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Match Complete!");
+        session.sendMessage(Component.text("Match Complete!", NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
 
         if (session instanceof final DuelSession duelSession) {
             final ArenaPlayer winner = duelSession.getWinner().orElseThrow(NullPointerException::new);
             final ArenaPlayer loser = duelSession.getLoser().orElseThrow(NullPointerException::new);
 
-            if (duelSession instanceof RankedDuelSession rankedDuelSession) {
+            Component winnerComponent = Component.text("Winner", NamedTextColor.GREEN)
+                    .append(Component.text(":", NamedTextColor.WHITE))
+                    .appendSpace().append(Component.text(winner.getUsername(), NamedTextColor.WHITE)
+                    .hoverEvent(Component.text("Click to view " + winner.getUsername() + "'s Inventory"))
+                    .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/m inv " + session.getUniqueId() + " " + winner.getUsername())));
 
-                return;
-            }
+            Component loserComponent = Component.text("Loser", NamedTextColor.RED)
+                    .append(Component.text(":", NamedTextColor.WHITE))
+                    .appendSpace().append(Component.text(loser.getUsername(), NamedTextColor.WHITE)
+                    .hoverEvent(Component.text("Click to view " + loser.getUsername() + "'s Inventory"))
+                    .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/m inv " + session.getUniqueId() + " " + loser.getUsername())));
 
-            session.sendMessage(ChatColor.GREEN + "Winner" + ChatColor.RESET + ": " + winner.getUsername());
-            session.sendMessage(ChatColor.RED + "Loser" + ChatColor.RESET + ": " + loser.getUsername());
-            session.sendMessage(
-                    new ComponentBuilder("[View Inventories]")
-                            .color(ChatColor.GRAY.asBungee())
-                            .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/m inv " + session.getUniqueId().toString() + " " + winner.getUsername())).create());
+            session.sendMessage(winnerComponent.appendSpace().append(Component.text("-", NamedTextColor.GRAY)).appendSpace().append(loserComponent));
 
             return;
         }
@@ -89,8 +98,8 @@ public final class ArenaMessage {
             final Team winner = teamSession.getWinner().orElseThrow(NullPointerException::new);
             final List<Team> losers = teamSession.getTeams().stream().filter(t -> !t.getUniqueId().equals(winner.getUniqueId())).collect(Collectors.toList());
             final List<String> loserNames = Lists.newArrayList();
-
             losers.forEach(l -> loserNames.add(l.getDisplayName()));
+
 
             session.sendMessage(ChatColor.GREEN + "Winner" + ChatColor.RESET + ": " + winner.getDisplayName());
             session.sendMessage(ChatColor.RED + "Loser(s)" + ChatColor.RESET + ": " + Joiner.on(ChatColor.RESET + ", ").join(loserNames));

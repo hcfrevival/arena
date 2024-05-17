@@ -7,6 +7,7 @@ import net.hcfrevival.arena.level.IArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -158,6 +159,10 @@ public interface ISession {
         });
     }
 
+    /**
+     * @deprecated Use sendMessage#Component
+     * @param message
+     */
     default void sendMessage(String message) {
         getPlayers().forEach(arenaPlayer -> {
             final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
@@ -168,6 +173,10 @@ public interface ISession {
         });
     }
 
+    /**
+     * @deprecated Use sendMessage#Component
+     * @param baseComponent
+     */
     default void sendMessage(BaseComponent baseComponent) {
         getPlayers().forEach(arenaPlayer -> {
             final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
@@ -178,6 +187,10 @@ public interface ISession {
         });
     }
 
+    /**
+     * @deprecated Use sendMessage#Component
+     * @param parts
+     */
     default void sendMessage(BaseComponent[] parts) {
         getPlayers().forEach(arenaPlayer -> {
             final Player player = Bukkit.getPlayer(arenaPlayer.getUniqueId());
@@ -186,6 +199,10 @@ public interface ISession {
                 player.spigot().sendMessage(parts);
             }
         });
+    }
+
+    default void sendMessage(Component component) {
+        getPlayers().forEach(arenaPlayer -> arenaPlayer.getPlayer().ifPresent(player -> player.sendMessage(component)));
     }
 
     default void sendSound(Sound sound) {

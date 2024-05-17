@@ -1,5 +1,7 @@
 package net.hcfrevival.arena.level;
 
+import net.kyori.adventure.text.Component;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -12,7 +14,7 @@ public interface IArena {
     /**
      * @return Display name
      */
-    String getDisplayName();
+    Component getDisplayName();
 
     /**
      * @return Authors

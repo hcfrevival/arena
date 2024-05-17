@@ -100,6 +100,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerListener(new MatchListener(this));
         registerListener(new StatsListener(this));
         registerListener(new TimerListener(this));
+        registerListener(new LevelBuilderListener(this));
     }
 
     @Override

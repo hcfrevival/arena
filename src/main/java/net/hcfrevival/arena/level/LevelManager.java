@@ -1,16 +1,19 @@
 package net.hcfrevival.arena.level;
 
 import com.google.common.collect.Lists;
-import gg.hcfactions.libs.bukkit.location.impl.BLocatable;
 import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
+import gg.hcfactions.libs.bukkit.utils.Configs;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.level.builder.LevelBuilderManager;
 import net.hcfrevival.arena.level.impl.*;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,7 +23,7 @@ public final class LevelManager extends ArenaManager {
 
     public LevelManager(ArenaPlugin plugin) {
         super(plugin);
-        this.levelBuilderManager = new LevelBuilderManager(plugin);
+        this.levelBuilderManager = new LevelBuilderManager(plugin, this);
         this.arenaRepository = Lists.newArrayList();
     }
 
@@ -40,27 +43,102 @@ public final class LevelManager extends ArenaManager {
         arenaRepository.clear();
     }
 
-    private void loadArenas() {
-        // TODO: Testing, remove soon
-        final PLocatable spawn1 = new PLocatable("world", 10.0, 64.0, 10.0, 0.0f, 0.0f);
-        final PLocatable spawn2 = new PLocatable("world", -10.0, 64.0, -10.0, 0.0f, 0.0f);
-        final PLocatable spec = new PLocatable("world", 25.0, 64.0, 25.0, 0.0f, 0.0f);
-        final BLocatable regionA = new BLocatable("world", 50.0, 0.0, 50.0);
-        final BLocatable regionB = new BLocatable("world", -50.0, 256.0, -50.0);
+    public void loadArenas() {
+        YamlConfiguration conf = plugin.loadConfiguration("arenas");
 
-        final DuelArenaInstance inst = new DuelArenaInstance(UUID.randomUUID(), null,true, List.of(spawn1, spawn2), spec, new ArenaRegion(regionA, regionB));
-        final DuelArena testArena = new DuelArena("TestArena", ChatColor.YELLOW + "Test Arena", "johnsama");
-        testArena.registerInstance(inst);
+        if (!arenaRepository.isEmpty()) {
+            arenaRepository.clear();
+        }
 
-        arenaRepository.add(testArena);
+        if (conf.get("data") == null) {
+            plugin.getAresLogger().warn("Could not found any arenas in arenas.yml. Skipping...");
+            return;
+        }
+
+        for (String arenaName : Objects.requireNonNull(conf.getConfigurationSection("data")).getKeys(false)) {
+            String path = "data." + arenaName + ".";
+            String displayNameUnformatted = conf.getString(path + "display_name");
+            Component formattedDisplayName = LegacyComponentSerializer.legacySection().deserialize(Objects.requireNonNull(displayNameUnformatted));
+            boolean isTeamArena = conf.getBoolean(path + "team");
+            String authors = conf.getString(path + "authors");
+            IArena arena = (isTeamArena)
+                    ? new TeamArena(arenaName, formattedDisplayName, authors)
+                    : new DuelArena(arenaName, formattedDisplayName, authors);
+
+            if (conf.get(path + "instances") == null) {
+                plugin.getAresLogger().warn("Could not find any instances for Arena {}", arenaName);
+                continue;
+            }
+
+            for (String instanceId : Objects.requireNonNull(conf.getConfigurationSection(path + "instances")).getKeys(false)) {
+                String instPath = path + "instances." + instanceId + ".";
+                UUID uuid = UUID.fromString(instanceId);
+                PLocatable spectatorSpawn = Configs.parsePlayerLocation(conf, instPath + "spectator_spawnpoint");
+                List<PLocatable> playerSpawns = Lists.newArrayList();
+                ArenaRegion region = new ArenaRegion(Configs.parseBlockLocation(conf, instPath + "region.a"), Configs.parseBlockLocation(conf, instPath + "region.b"));
+
+                if (conf.get(instPath + "spawnpoints") == null) {
+                    plugin.getAresLogger().warn("Could not find any spawnpoints for Arena Instance {}", instanceId);
+                    continue;
+                }
+
+                for (String spawnId : Objects.requireNonNull(conf.getConfigurationSection(instPath + "spawnpoints")).getKeys(false)) {
+                    PLocatable spawnpoint = Configs.parsePlayerLocation(conf, instPath + "spawnpoints." + spawnId);
+                    playerSpawns.add(spawnpoint);
+                }
+
+                if (isTeamArena) {
+                    TeamArenaInstance inst = new TeamArenaInstance(uuid, (TeamArena) arena, true, playerSpawns, spectatorSpawn, region);
+                    arena.registerInstance(inst);
+                    continue;
+                }
+
+                DuelArenaInstance inst = new DuelArenaInstance(uuid, (DuelArena) arena, true, playerSpawns, spectatorSpawn, region);
+                arena.registerInstance(inst);
+            }
+
+            arenaRepository.add(arena);
+        }
+
+        plugin.getAresLogger().info("Loaded {} Arenas", arenaRepository.size());
     }
 
-    private void saveArena(IArena arena) {
+    public void saveArena(IArena arena) {
+        YamlConfiguration conf = plugin.loadConfiguration("arenas");
+        String path = "data." + arena.getName() + ".";
+
+        conf.set(path + "display_name", LegacyComponentSerializer.legacySection().serialize(arena.getDisplayName()));
+        conf.set(path + "team", (arena instanceof TeamArena));
+        conf.set(path + "authors", arena.getAuthors());
+
+        arena.getInstances().forEach(inst -> {
+            String instPath = path + inst.getUniqueId().toString() + ".";
+
+            Configs.writePlayerLocation(conf, instPath + "spectator_spawnpoint", inst.getSpectatorSpawnpoint());
+            Configs.writeBlockLocation(conf, instPath + "region.a", inst.getRegion().getCornerA());
+            Configs.writeBlockLocation(conf, instPath + "region.b", inst.getRegion().getCornerB());
+
+            inst.getSpawnpoints().forEach(spawnpoint -> {
+                UUID id = UUID.randomUUID();
+                Configs.writePlayerLocation(conf, instPath + "spawnpoints." + id, spawnpoint);
+            });
+        });
+
+        plugin.saveConfiguration("arenas", conf);
+        plugin.getAresLogger().info("Saved {} Arena", arena.getName());
+    }
+
+    public void deleteArena(IArena arena) {
 
     }
 
-    private void deleteArena(IArena arena) {
-
+    /**
+     * Queries all arenas to find one that matches the provided name
+     * @param name Name to query
+     * @return Optional of IArena
+     */
+    public Optional<IArena> getArenaByName(String name) {
+        return arenaRepository.stream().filter(a -> a.getName().equalsIgnoreCase(name)).findFirst();
     }
 
     /**
