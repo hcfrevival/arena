@@ -7,8 +7,11 @@ import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.kit.KitManager;
 import net.hcfrevival.arena.session.SessionManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -27,6 +30,17 @@ public record CustomKitBook(@Getter ArenaPlugin plugin) implements ICustomItem {
     @Override
     public String getName() {
         return ChatColor.YELLOW + "Custom" + ChatColor.GRAY + " (Right-click)";
+    }
+
+    @Override
+    public Map.Entry<NamespacedKey, String> getIdentifier() {
+        return Map.entry(plugin.getNamespacedKey(), "CustomKitBook");
+    }
+
+    @Override
+    public Component getDisplayNameComponent() {
+        return Component.text("Custom", NamedTextColor.YELLOW)
+                .appendSpace().append(Component.text("(", NamedTextColor.GRAY).append(Component.keybind("key.use").append(Component.text(")"))));
     }
 
     @Override

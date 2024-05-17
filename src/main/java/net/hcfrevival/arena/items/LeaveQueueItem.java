@@ -10,9 +10,12 @@ import net.hcfrevival.arena.event.PlayerLeaveQueueEvent;
 import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.queue.impl.IArenaQueue;
 import net.hcfrevival.arena.util.LobbyUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 
@@ -32,6 +35,16 @@ public final class LeaveQueueItem implements ICustomItem {
     @Override
     public String getName() {
         return ChatColor.RED + "Leave Queue";
+    }
+
+    @Override
+    public Map.Entry<NamespacedKey, String> getIdentifier() {
+        return Map.entry(plugin.getNamespacedKey(), "LeaveQueueItem");
+    }
+
+    @Override
+    public Component getDisplayNameComponent() {
+        return Component.text("Leave Queue", NamedTextColor.RED);
     }
 
     @Override

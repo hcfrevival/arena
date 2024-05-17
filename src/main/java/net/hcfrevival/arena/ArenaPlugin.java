@@ -1,6 +1,5 @@
 package net.hcfrevival.arena;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.google.common.collect.Maps;
 import gg.hcfactions.cx.CXService;
 import gg.hcfactions.libs.bukkit.AresPlugin;
@@ -19,30 +18,41 @@ import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.timer.TimerManager;
+import org.bukkit.NamespacedKey;
 
 import java.util.Map;
 
 public final class ArenaPlugin extends AresPlugin {
+    public static ArenaPlugin instance;
+
+    @Getter public final NamespacedKey namespacedKey = new NamespacedKey(this, "arena");
     @Getter public Map<Class<? extends ArenaManager>, ArenaManager> managers;
     @Getter public ArenaConfig configuration;
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        registerPacketEvents();
+    }
+
+    @Override
     public void onEnable() {
+        instance = this;
+
         super.onEnable();
 
         configuration = new ArenaConfig(this);
         configuration.load();
 
-        // protocollib
-        registerProtocolLibrary(ProtocolLibrary.getProtocolManager());
+        registerLogger("Arena");
 
         // services
         // custom item service
-        final CustomItemService cis = new CustomItemService(this);
+        final CustomItemService cis = new CustomItemService(this, namespacedKey);
         cis.registerNewItem(new UnrankedQueueItem(this));
         cis.registerNewItem(new RankedQueueItem(this));
         cis.registerNewItem(new LeaveQueueItem(this));
-        cis.registerNewItem(new EditKitItem());
+        cis.registerNewItem(new EditKitItem(this));
         cis.registerNewItem(new CreatePartyItem(this));
         cis.registerNewItem(new CustomKitBook(this));
         cis.registerNewItem(new DefaultKitBook(this));
