@@ -6,6 +6,10 @@ import lombok.Getter;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public final class ArenaConfig {
+    @Getter public String mongoUri;
+    @Getter public String mongoDatabaseName;
+    @Getter public String redisUri;
+
     @Getter public PLocatable spawnLocation;
     @Getter public PLocatable kitEditorLocation;
 
@@ -33,6 +37,10 @@ public final class ArenaConfig {
 
     public void load() {
         final YamlConfiguration conf = plugin.loadConfiguration("config");
+
+        this.mongoUri = conf.getString("db.mongo.uri");
+        this.mongoDatabaseName = conf.getString("db.mongo.database");
+        this.redisUri = conf.getString("db.redis.uri");
 
         this.spawnLocation = Configs.parsePlayerLocation(conf, "locations.spawn");
         this.kitEditorLocation = Configs.parsePlayerLocation(conf, "locations.editor");

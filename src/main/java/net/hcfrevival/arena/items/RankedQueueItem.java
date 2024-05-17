@@ -64,6 +64,11 @@ public final class RankedQueueItem implements ICustomItem {
     }
 
     @Override
+    public boolean isRepairable() {
+        return true;
+    }
+
+    @Override
     public ItemStack getItem() {
         final ItemStack item = ICustomItem.super.getItem();
         final ItemMeta meta = item.getItemMeta();

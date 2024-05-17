@@ -58,6 +58,11 @@ public final class LeaveQueueItem implements ICustomItem {
     }
 
     @Override
+    public boolean isRepairable() {
+        return true;
+    }
+
+    @Override
     public Runnable getRightClick(Player who) {
         return () -> {
             final QueueManager queueManager = (QueueManager) plugin.getManagers().get(QueueManager.class);

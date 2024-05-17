@@ -54,6 +54,11 @@ public final class TeamListItem implements ICustomItem {
     }
 
     @Override
+    public boolean isRepairable() {
+        return true;
+    }
+
+    @Override
     public Runnable getRightClick(Player who) {
         return () -> {
             final TeamListMenu menu = new TeamListMenu(plugin, who);

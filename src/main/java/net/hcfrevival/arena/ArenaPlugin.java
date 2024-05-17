@@ -2,7 +2,11 @@ package net.hcfrevival.arena;
 
 import com.google.common.collect.Maps;
 import gg.hcfactions.cx.CXService;
+import gg.hcfactions.libs.acf.PaperCommandManager;
+import gg.hcfactions.libs.base.connect.impl.mongo.Mongo;
+import gg.hcfactions.libs.base.connect.impl.redis.Redis;
 import gg.hcfactions.libs.bukkit.AresPlugin;
+import gg.hcfactions.libs.bukkit.services.impl.account.AccountService;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
 import net.hcfrevival.arena.command.ArenaCommand;
@@ -46,6 +50,14 @@ public final class ArenaPlugin extends AresPlugin {
 
         registerLogger("Arena");
 
+        // dbs
+        final Mongo mdb = new Mongo(configuration.getMongoUri(), getAresLogger());
+        final Redis redis = new Redis(configuration.getRedisUri(), getAresLogger());
+        mdb.openConnection();
+        redis.openConnection();
+        registerConnectable(mdb);
+        registerConnectable(redis);
+
         // services
         // custom item service
         final CustomItemService cis = new CustomItemService(this, namespacedKey);
@@ -60,10 +72,12 @@ public final class ArenaPlugin extends AresPlugin {
         cis.registerNewItem(new TeamListItem(this));
         registerService(cis);
         registerService(new CXService(this));
+        registerService(new AccountService(this, configuration.getMongoDatabaseName()));
 
         startServices();
 
         // commands
+        registerCommandManager(new PaperCommandManager(this));
         registerCommand(new ArenaCommand(this));
         registerCommand(new MatchCommand(this));
         registerCommand(new KitCommand(this));

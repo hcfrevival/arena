@@ -71,6 +71,11 @@ public final class KitManager extends ArenaManager {
         final YamlConfiguration conf = plugin.loadConfiguration("default_kits");
         int loaded = 0;
 
+        if (conf.get("data") == null) {
+            plugin.getAresLogger().warn("Could not find any entries in default kits file. Skipping...");
+            return;
+        }
+
         for (String gameruleName : conf.getConfigurationSection("data").getKeys(false)) {
             final EGamerule gamerule;
             try {

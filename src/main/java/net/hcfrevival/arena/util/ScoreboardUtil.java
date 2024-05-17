@@ -83,6 +83,7 @@ public final class ScoreboardUtil {
 
         playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
             applyScoreboardTemplate(arenaPlayer.getScoreboard());
+
             arenaPlayer.getScoreboard().setLine(4, ChatColor.GOLD + session.getPlayerA().getUsername() + ChatColor.YELLOW + ": " + pingA + "ms");
             arenaPlayer.getScoreboard().setLine(5, ChatColor.GOLD + session.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + pingB + "ms");
             arenaPlayer.getScoreboard().setLine(6, ChatColor.RESET + "" + ChatColor.RESET);

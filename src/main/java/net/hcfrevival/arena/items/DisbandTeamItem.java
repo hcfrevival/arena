@@ -56,7 +56,7 @@ public final class DisbandTeamItem implements ICustomItem {
     }
 
     @Override
-    public boolean isSoulbound() {
+    public boolean isRepairable() {
         return true;
     }
 

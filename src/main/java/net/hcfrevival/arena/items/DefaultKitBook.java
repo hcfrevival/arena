@@ -56,7 +56,7 @@ public record DefaultKitBook(@Getter ArenaPlugin plugin) implements ICustomItem 
     }
 
     @Override
-    public boolean isSoulbound() {
+    public boolean isRepairable() {
         return true;
     }
 
