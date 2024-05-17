@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import lombok.Getter;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -56,6 +57,10 @@ public final class Team {
         return invitedMembers.contains(uniqueId);
     }
 
+    /**
+     * @deprecated Use sendMessage#Component
+     * @param message
+     */
     public void sendMessage(String message) {
         getFullMembers().forEach(member -> {
             final Player player = Bukkit.getPlayer(member.getUniqueId());
@@ -64,6 +69,10 @@ public final class Team {
                 player.sendMessage(message);
             }
         });
+    }
+
+    public void sendMessage(Component component) {
+        getFullMembers().forEach(member -> member.getPlayer().ifPresent(player -> player.sendMessage(component)));
     }
 
     public void teleport(Location loc) {
@@ -81,12 +90,12 @@ public final class Team {
             return;
         }
 
+        members.add(arenaPlayer);
+
         getFullMembers().forEach(member -> {
             member.getPlayer().ifPresent(arenaPlayer::addFriendly);
             arenaPlayer.getPlayer().ifPresent(member::addFriendly);
         });
-
-        members.add(arenaPlayer);
     }
 
     public void removeMember(ArenaPlayer arenaPlayer) {

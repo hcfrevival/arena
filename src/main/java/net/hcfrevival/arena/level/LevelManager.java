@@ -77,7 +77,7 @@ public final class LevelManager extends ArenaManager {
                 List<PLocatable> playerSpawns = Lists.newArrayList();
                 ArenaRegion region = new ArenaRegion(Configs.parseBlockLocation(conf, instPath + "region.a"), Configs.parseBlockLocation(conf, instPath + "region.b"));
 
-                if (conf.get(instPath + "spawnpoints") == null) {
+                if (conf.getConfigurationSection(instPath + "spawnpoints") == null) {
                     plugin.getAresLogger().warn("Could not find any spawnpoints for Arena Instance {}", instanceId);
                     continue;
                 }
@@ -112,7 +112,7 @@ public final class LevelManager extends ArenaManager {
         conf.set(path + "authors", arena.getAuthors());
 
         arena.getInstances().forEach(inst -> {
-            String instPath = path + inst.getUniqueId().toString() + ".";
+            String instPath = path + "instances." + inst.getUniqueId().toString() + ".";
 
             Configs.writePlayerLocation(conf, instPath + "spectator_spawnpoint", inst.getSpectatorSpawnpoint());
             Configs.writeBlockLocation(conf, instPath + "region.a", inst.getRegion().getCornerA());

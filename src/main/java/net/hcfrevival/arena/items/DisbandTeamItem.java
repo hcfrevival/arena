@@ -2,6 +2,7 @@ package net.hcfrevival.arena.items;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import gg.hcfactions.libs.base.consumer.Promise;
 import gg.hcfactions.libs.bukkit.services.impl.items.ICustomItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -78,7 +79,15 @@ public final class DisbandTeamItem implements ICustomItem {
                 return;
             }
 
-            teamManager.disbandTeam(team);
+            teamManager.getExecutor().disbandTeam(who, new Promise() {
+                @Override
+                public void resolve() {}
+
+                @Override
+                public void reject(String s) {
+                    who.sendMessage(Component.text("Failed to disband team: " + s, NamedTextColor.RED));
+                }
+            });
         };
     }
 }

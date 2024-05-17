@@ -87,6 +87,15 @@ public final class SessionManager extends ArenaManager {
     }
 
     /**
+     * Query a session instance by team
+     * @param team Team to query
+     * @return Optional of ISession
+     */
+    public Optional<ISession> getSession(Team team) {
+        return getSessionRepository().stream().filter(s -> s instanceof TeamSession ts && ts.getTeams().contains(team)).findFirst();
+    }
+
+    /**
      * Query a Session from Session History by Match UID
      * @param matchUid Match UID
      * @return Optional of ISession

@@ -2,6 +2,7 @@ package net.hcfrevival.arena.items;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import gg.hcfactions.libs.base.consumer.Promise;
 import gg.hcfactions.libs.bukkit.services.impl.items.ICustomItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -84,16 +85,19 @@ public final class CreatePartyItem implements ICustomItem {
     @Override
     public Runnable getRightClick(Player who) {
         return () -> {
-            final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
             final TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
-            final Optional<ArenaPlayer> playerQuery = playerManager.getPlayer(who.getUniqueId());
 
-            if (playerQuery.isEmpty()) {
-                who.sendMessage(ChatColor.RED + "Failed to load your Arena Player data");
-                return;
-            }
+            teamManager.getExecutor().createTeam(who, new Promise() {
+                @Override
+                public void resolve() {
+                    who.sendMessage(Component.text("Team Created", NamedTextColor.GREEN));
+                }
 
-            teamManager.createTeam(playerQuery.get());
+                @Override
+                public void reject(String s) {
+                    who.sendMessage(Component.text("Failed to create team: " + s, NamedTextColor.RED));
+                }
+            });
         };
     }
 }
