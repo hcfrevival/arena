@@ -42,7 +42,7 @@ public final class TeamListMenu extends GenericMenu {
                 skullMeta.setLore(lore);
 
                 skullMeta.setDisplayName(ChatColor.GOLD + team.getDisplayName() + (team.isMember(player.getUniqueId())
-                        ? ChatColor.GRAY + "(You)"
+                        ? " " + ChatColor.GRAY + "(You)"
                         : " (" + team.getFullMembers().size() + ")"));
 
                 skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(team.getLeader().getUniqueId()));
@@ -53,6 +53,8 @@ public final class TeamListMenu extends GenericMenu {
                 // TODO: Open Duel Request GUI
                 player.sendMessage("openDuelRequestGUI");
             }));
+
+            cursor += 1;
         }
 
         super.open();
