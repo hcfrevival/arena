@@ -8,8 +8,11 @@ import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.team.impl.Team;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 
@@ -32,6 +35,17 @@ public final class DisbandTeamItem implements ICustomItem {
     }
 
     @Override
+    public Map.Entry<NamespacedKey, String> getIdentifier() {
+        return Map.entry(plugin.getNamespacedKey(), "DisbandTeamItem");
+    }
+
+    @Override
+    public Component getDisplayNameComponent() {
+        return Component.text("Disband Team", NamedTextColor.RED)
+                .appendSpace().append(Component.text("(", NamedTextColor.GRAY).append(Component.keybind("key.use").append(Component.text(")"))));
+    }
+
+    @Override
     public List<String> getLore() {
         return Lists.newArrayList();
     }
@@ -42,7 +56,7 @@ public final class DisbandTeamItem implements ICustomItem {
     }
 
     @Override
-    public boolean isSoulbound() {
+    public boolean isRepairable() {
         return true;
     }
 

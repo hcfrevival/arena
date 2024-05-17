@@ -1,9 +1,12 @@
 package net.hcfrevival.arena;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.google.common.collect.Maps;
 import gg.hcfactions.cx.CXService;
+import gg.hcfactions.libs.acf.PaperCommandManager;
+import gg.hcfactions.libs.base.connect.impl.mongo.Mongo;
+import gg.hcfactions.libs.base.connect.impl.redis.Redis;
 import gg.hcfactions.libs.bukkit.AresPlugin;
+import gg.hcfactions.libs.bukkit.services.impl.account.AccountService;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
 import net.hcfrevival.arena.command.ArenaCommand;
@@ -19,30 +22,49 @@ import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.timer.TimerManager;
+import org.bukkit.NamespacedKey;
 
 import java.util.Map;
 
 public final class ArenaPlugin extends AresPlugin {
+    public static ArenaPlugin instance;
+
+    @Getter public final NamespacedKey namespacedKey = new NamespacedKey(this, "arena");
     @Getter public Map<Class<? extends ArenaManager>, ArenaManager> managers;
     @Getter public ArenaConfig configuration;
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        registerPacketEvents();
+    }
+
+    @Override
     public void onEnable() {
+        instance = this;
+
         super.onEnable();
 
         configuration = new ArenaConfig(this);
         configuration.load();
 
-        // protocollib
-        registerProtocolLibrary(ProtocolLibrary.getProtocolManager());
+        registerLogger("Arena");
+
+        // dbs
+        final Mongo mdb = new Mongo(configuration.getMongoUri(), getAresLogger());
+        final Redis redis = new Redis(configuration.getRedisUri(), getAresLogger());
+        mdb.openConnection();
+        redis.openConnection();
+        registerConnectable(mdb);
+        registerConnectable(redis);
 
         // services
         // custom item service
-        final CustomItemService cis = new CustomItemService(this);
+        final CustomItemService cis = new CustomItemService(this, namespacedKey);
         cis.registerNewItem(new UnrankedQueueItem(this));
         cis.registerNewItem(new RankedQueueItem(this));
         cis.registerNewItem(new LeaveQueueItem(this));
-        cis.registerNewItem(new EditKitItem());
+        cis.registerNewItem(new EditKitItem(this));
         cis.registerNewItem(new CreatePartyItem(this));
         cis.registerNewItem(new CustomKitBook(this));
         cis.registerNewItem(new DefaultKitBook(this));
@@ -50,10 +72,12 @@ public final class ArenaPlugin extends AresPlugin {
         cis.registerNewItem(new TeamListItem(this));
         registerService(cis);
         registerService(new CXService(this));
+        registerService(new AccountService(this, configuration.getMongoDatabaseName()));
 
         startServices();
 
         // commands
+        registerCommandManager(new PaperCommandManager(this));
         registerCommand(new ArenaCommand(this));
         registerCommand(new MatchCommand(this));
         registerCommand(new KitCommand(this));

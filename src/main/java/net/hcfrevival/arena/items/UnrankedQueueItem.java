@@ -11,8 +11,11 @@ import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.menu.KitSelectMenu;
 import net.hcfrevival.arena.queue.QueueManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -37,6 +40,16 @@ public final class UnrankedQueueItem implements ICustomItem {
     }
 
     @Override
+    public Map.Entry<NamespacedKey, String> getIdentifier() {
+        return Map.entry(plugin.getNamespacedKey(), "UnrankedQueueItem");
+    }
+
+    @Override
+    public Component getDisplayNameComponent() {
+        return Component.text("Join Unranked Queue", NamedTextColor.AQUA);
+    }
+
+    @Override
     public List<String> getLore() {
         final List<String> res = Lists.newArrayList();
         res.add(ChatColor.GRAY + "Unranked Queue will pair you against");
@@ -47,6 +60,11 @@ public final class UnrankedQueueItem implements ICustomItem {
     @Override
     public Map<Enchantment, Integer> getEnchantments() {
         return Maps.newHashMap();
+    }
+
+    @Override
+    public boolean isRepairable() {
+        return true;
     }
 
     @Override

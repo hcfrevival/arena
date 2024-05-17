@@ -10,8 +10,11 @@ import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.team.impl.Team;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -37,6 +40,16 @@ public final class CreatePartyItem implements ICustomItem {
     }
 
     @Override
+    public Map.Entry<NamespacedKey, String> getIdentifier() {
+        return Map.entry(plugin.getNamespacedKey(), "CreatePartyItem");
+    }
+
+    @Override
+    public Component getDisplayNameComponent() {
+        return Component.text("Create Party", NamedTextColor.GREEN);
+    }
+
+    @Override
     public List<String> getLore() {
         final List<String> res = Lists.newArrayList();
         res.add(ChatColor.GRAY + "Create a party and invite your friends");
@@ -47,6 +60,11 @@ public final class CreatePartyItem implements ICustomItem {
     @Override
     public Map<Enchantment, Integer> getEnchantments() {
         return Maps.newHashMap();
+    }
+
+    @Override
+    public boolean isRepairable() {
+        return true;
     }
 
     @Override

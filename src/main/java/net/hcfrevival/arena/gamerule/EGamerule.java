@@ -29,11 +29,11 @@ public enum EGamerule {
 
         if (rule.equals(NODEBUFF) || rule.equals(DEBUFF)) {
             final PotionMeta meta = (PotionMeta) item.getItemMeta();
-            final Color potionColor = (rule.equals(NODEBUFF) ? PotionType.INSTANT_HEAL.getEffectType().getColor() : PotionType.POISON.getEffectType().getColor());
+            final Color potionColor = (rule.equals(NODEBUFF) ? PotionType.HEALING.getEffectType().getColor() : PotionType.POISON.getEffectType().getColor());
 
             if (meta != null) {
                 meta.setColor(potionColor);
-                meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS, ItemFlag.HIDE_ATTRIBUTES);
+                meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP, ItemFlag.HIDE_ATTRIBUTES);
                 item.setItemMeta(meta);
             }
         }
