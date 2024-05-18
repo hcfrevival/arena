@@ -60,7 +60,9 @@ public final class ArenaPlugin extends AresPlugin {
         registerConnectable(redis);
 
         // commands
-        registerCommandManager(new PaperCommandManager(this));
+        final PaperCommandManager cmdMng = new PaperCommandManager(this);
+        cmdMng.enableUnstableAPI("help");
+        registerCommandManager(cmdMng);
         registerCommand(new ArenaCommand(this));
         registerCommand(new MatchCommand(this));
         registerCommand(new KitCommand(this));
