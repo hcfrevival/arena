@@ -24,7 +24,7 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
         final Optional<ArenaPlayer> arenaPlayerQuery = playerManager.getPlayer(player.getUniqueId());
 
         if (arenaPlayerQuery.isEmpty()) {
-            plugin.getAresLogger().error("Failed to perform Arena Player Query in InventoryClickEvent");
+            plugin.getAresLogger().error("Failed to perform Arena Player Query");
             cancellable.setCancelled(true);
             return;
         }
