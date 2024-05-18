@@ -8,6 +8,10 @@ import gg.hcfactions.libs.base.connect.impl.redis.Redis;
 import gg.hcfactions.libs.bukkit.AresPlugin;
 import gg.hcfactions.libs.bukkit.services.impl.account.AccountService;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
+import gg.hcfactions.libs.bukkit.services.impl.punishments.PunishmentService;
+import gg.hcfactions.libs.bukkit.services.impl.ranks.RankService;
+import gg.hcfactions.libs.bukkit.services.impl.reports.ReportService;
+import gg.hcfactions.libs.bukkit.services.impl.sync.SyncService;
 import lombok.Getter;
 import net.hcfrevival.arena.command.*;
 import net.hcfrevival.arena.items.*;
@@ -78,6 +82,10 @@ public final class ArenaPlugin extends AresPlugin {
         registerService(cis);
         registerService(new CXService(this));
         registerService(new AccountService(this, configuration.getMongoDatabaseName()));
+        registerService(new SyncService(this, configuration.getMongoDatabaseName()));
+        registerService(new PunishmentService(this, configuration.getMongoDatabaseName()));
+        registerService(new RankService(this));
+        registerService(new ReportService(this));
         startServices();
 
         // managers
