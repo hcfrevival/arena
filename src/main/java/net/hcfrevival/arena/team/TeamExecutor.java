@@ -103,6 +103,7 @@ public class TeamExecutor {
                     activeSessionQuery.get().startSpectating(arenaPlayer);
                 }
 
+                team.getInvitedMembers().remove(arenaPlayer.getUniqueId());
                 team.addMember(arenaPlayer);
                 team.sendMessage(Component.text(player.getName(), NamedTextColor.AQUA).appendSpace().append(Component.text("has joined the team", NamedTextColor.GRAY)));
 
