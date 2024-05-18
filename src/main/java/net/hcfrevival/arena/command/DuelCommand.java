@@ -12,11 +12,14 @@ import net.hcfrevival.arena.menu.KitSelectMenu;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.session.IDuelRequest;
 import net.hcfrevival.arena.session.SessionManager;
+import net.hcfrevival.arena.team.TeamManager;
+import net.hcfrevival.arena.team.impl.Team;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @CommandAlias("duel")
@@ -49,6 +52,13 @@ public final class DuelCommand extends BaseCommand {
             uuid = UUID.fromString(reqId);
         } catch (IllegalArgumentException e) {
             player.sendMessage(Component.text("Invalid request ID", NamedTextColor.RED));
+            return;
+        }
+
+        TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
+        Optional<Team> teamQuery = teamManager.getTeam(player.getUniqueId());
+        if (teamQuery.isPresent() && !teamQuery.get().getLeader().getUniqueId().equals(player.getUniqueId())) {
+            player.sendMessage(Component.text("You are not the team leader", NamedTextColor.RED));
             return;
         }
 
