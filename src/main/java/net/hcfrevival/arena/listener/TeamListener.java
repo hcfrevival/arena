@@ -30,6 +30,10 @@ public final class TeamListener implements Listener {
         Player attacked = event.getDamaged();
         TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
 
+        if (attacker.getUniqueId().equals(attacked.getUniqueId())) {
+            return;
+        }
+
         teamManager.getTeam(attacker).ifPresent(team -> {
             if (team.isMember(attacked.getUniqueId())) {
                 event.setCancelled(true);
