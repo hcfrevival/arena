@@ -155,7 +155,7 @@ public interface ISession {
             bukkitPlayer.setGameMode(GameMode.SURVIVAL);
             Players.resetHealth(bukkitPlayer);
 
-            getSpectators().add(player);
+            getSpectators().remove(player);
         });
     }
 

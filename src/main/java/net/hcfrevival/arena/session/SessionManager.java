@@ -23,6 +23,8 @@ import net.hcfrevival.arena.session.impl.TeamSession;
 import net.hcfrevival.arena.session.request.DuelRequestManager;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
 import net.hcfrevival.arena.team.impl.Team;
+import net.hcfrevival.arena.util.ArenaUtil;
+import net.hcfrevival.arena.util.LobbyUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -235,10 +237,19 @@ public final class SessionManager extends ArenaManager {
         session.setEndTimestamp(Time.now());
         session.setActive(false);
 
-        new Scheduler(plugin).sync(() -> session.getPlayers().forEach(player -> {
-            player.setCurrentState(EPlayerState.LOBBY);
-            player.setStatHolder(null);
-        })).delay(3 * 20L).run();
+        new Scheduler(plugin).sync(() -> {
+            ArenaUtil.clearEntities(session.getArena());
+
+            session.getPlayers().forEach(player -> {
+                player.setCurrentState(EPlayerState.LOBBY);
+                player.setStatHolder(null);
+
+                player.getPlayer().ifPresent(bukkitPlayer -> {
+                    bukkitPlayer.teleport(plugin.getConfiguration().getSpawnLocation().getBukkitLocation());
+                    LobbyUtil.giveLobbyItems(plugin, bukkitPlayer);
+                });
+            });
+        }).delay(3 * 20L).run();
 
         new Scheduler(plugin).sync(() -> session.getArena().setAvailable(true)).delay(5 * 20L).run();
 
