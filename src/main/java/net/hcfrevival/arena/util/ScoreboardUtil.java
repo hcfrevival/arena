@@ -90,7 +90,7 @@ public final class ScoreboardUtil {
      * 1 play.hcfrevival.net
      * 0 -------------------------
      */
-    public static final int TIMER_SPACE_POS = 11;
+    public static final int TIMER_SPACE_POS = 14;
     private static final String INDENT = ChatColor.RESET + " " + ChatColor.RESET + " ";
 
     private static void applyScoreboardTemplate(AresScoreboard scoreboard) {
