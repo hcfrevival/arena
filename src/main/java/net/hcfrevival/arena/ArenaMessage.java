@@ -64,7 +64,7 @@ public final class ArenaMessage {
     }
 
     public static String getItemLockedMessage(String itemName, long remainingDuration) {
-         return ChatColor.RED + "Your " + ChatColor.RED + "" + ChatColor.BOLD + itemName + ChatColor.RED + " are locked for " + Time.convertToDecimal(remainingDuration);
+         return ChatColor.RED + "Your " + ChatColor.RED + "" + ChatColor.BOLD + itemName + ChatColor.RED + " are locked for " + ChatColor.RED + "" + ChatColor.BOLD + Time.convertToDecimal(remainingDuration) + ChatColor.RED + "s";
     }
 
     public static Component getItemUnlockedMessage(String itemName) {
