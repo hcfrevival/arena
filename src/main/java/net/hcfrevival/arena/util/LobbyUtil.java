@@ -37,6 +37,7 @@ public final class LobbyUtil {
     }
 
     public static void givePartyMemberItems(ArenaPlugin plugin, Player player) {
-
+        Players.resetHealth(player);
+        player.getInventory().clear();
     }
 }
