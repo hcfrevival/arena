@@ -13,10 +13,11 @@ import net.hcfrevival.arena.session.impl.RankedDuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
 import net.hcfrevival.arena.team.impl.Team;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -96,15 +97,35 @@ public final class ArenaMessage {
 
         if (session instanceof final TeamSession teamSession) {
             final Team winner = teamSession.getWinner().orElseThrow(NullPointerException::new);
-            final List<Team> losers = teamSession.getTeams().stream().filter(t -> !t.getUniqueId().equals(winner.getUniqueId())).collect(Collectors.toList());
+            final List<Team> losers = teamSession.getTeams().stream().filter(t -> !t.getUniqueId().equals(winner.getUniqueId())).toList();
+            final List<String> winnerNames = Lists.newArrayList();
             final List<String> loserNames = Lists.newArrayList();
-            losers.forEach(l -> loserNames.add(l.getDisplayName()));
 
+            winner.getFullMembers().forEach(wm -> winnerNames.add(wm.getUsername()));
+            losers.forEach(l -> l.getFullMembers().forEach(lm -> loserNames.add(lm.getUsername())));
 
-            session.sendMessage(ChatColor.GREEN + "Winner" + ChatColor.RESET + ": " + winner.getDisplayName());
-            session.sendMessage(ChatColor.RED + "Loser(s)" + ChatColor.RESET + ": " + Joiner.on(ChatColor.RESET + ", ").join(loserNames));
+            Component winnerComponent = Component.text("Winner", NamedTextColor.GREEN).append(Component.text(":", NamedTextColor.WHITE)).appendSpace();
+            for (int i = 0; i < winnerNames.size(); i++) {
+                String winnerName = winnerNames.get(i);
+                winnerComponent = winnerComponent.append(Component.text(winnerName, NamedTextColor.WHITE).clickEvent(ClickEvent.runCommand("/m inv " + session.getUniqueId() + " " + winnerName)).hoverEvent(Component.text("Click to view " + winnerName + "'s inventory")));
 
-            return;
+                if (i < (winnerNames.size() - 1)) {
+                    winnerComponent = winnerComponent.append(Component.text(",")).appendSpace();
+                }
+            }
+
+            Component loserComponent = Component.text("Loser", NamedTextColor.RED).append(Component.text(":", NamedTextColor.WHITE)).appendSpace();
+            for (int i = 0; i < loserNames.size(); i++) {
+                String loserName = loserNames.get(i);
+                loserComponent = loserComponent.append(Component.text(loserName, NamedTextColor.WHITE).clickEvent(ClickEvent.runCommand("/m inv " + session.getUniqueId() + " " + loserName)).hoverEvent(Component.text("Click to view " + loserName + "'s inventory")));
+
+                if (i < (loserNames.size() - 1)) {
+                    loserComponent = loserComponent.append(Component.text(",")).appendSpace();
+                }
+            }
+
+            session.sendMessage(winnerComponent);
+            session.sendMessage(loserComponent);
         }
     }
 }
