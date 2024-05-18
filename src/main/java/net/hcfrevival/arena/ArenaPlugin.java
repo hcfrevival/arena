@@ -9,10 +9,7 @@ import gg.hcfactions.libs.bukkit.AresPlugin;
 import gg.hcfactions.libs.bukkit.services.impl.account.AccountService;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
-import net.hcfrevival.arena.command.ArenaCommand;
-import net.hcfrevival.arena.command.KitCommand;
-import net.hcfrevival.arena.command.MatchCommand;
-import net.hcfrevival.arena.command.TeamCommand;
+import net.hcfrevival.arena.command.*;
 import net.hcfrevival.arena.items.*;
 import net.hcfrevival.arena.kit.KitManager;
 import net.hcfrevival.arena.level.LevelManager;
@@ -64,6 +61,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerCommand(new MatchCommand(this));
         registerCommand(new KitCommand(this));
         registerCommand(new TeamCommand(this));
+        registerCommand(new DuelCommand(this));
 
         // services
         // custom item service

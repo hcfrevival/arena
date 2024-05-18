@@ -19,6 +19,7 @@ import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.RankedDuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
+import net.hcfrevival.arena.session.request.DuelRequestManager;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
 import net.hcfrevival.arena.team.impl.Team;
 import org.bukkit.Bukkit;
@@ -34,23 +35,29 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class SessionManager extends ArenaManager {
+    @Getter public final DuelRequestManager duelRequestManager;
     @Getter public final Set<ISession> sessionRepository;
     @Getter public final Set<ISession> sessionHistory;
     @Getter public BukkitTask matchHistoryCleanupTask;
 
     public SessionManager(ArenaPlugin plugin) {
         super(plugin);
+        this.duelRequestManager = new DuelRequestManager(this);
         this.sessionRepository = Sets.newConcurrentHashSet();
         this.sessionHistory = Sets.newConcurrentHashSet();
     }
 
     @Override
     public void onEnable() {
+        duelRequestManager.onEnable();
+
         matchHistoryCleanupTask = new Scheduler(plugin).async(() -> sessionHistory.removeIf(s -> s.getExpire() <= Time.now())).repeat(0L, 100L).run();
     }
 
     @Override
     public void onDisable() {
+        duelRequestManager.onDisable();
+
         if (matchHistoryCleanupTask != null) {
             matchHistoryCleanupTask.cancel();
             matchHistoryCleanupTask = null;
