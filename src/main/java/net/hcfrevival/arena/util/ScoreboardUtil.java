@@ -1,17 +1,22 @@
 package net.hcfrevival.arena.util;
 
 import com.google.common.base.Strings;
+import gg.hcfactions.cx.CXService;
 import gg.hcfactions.libs.base.util.Time;
+import gg.hcfactions.libs.bukkit.AresPlugin;
 import gg.hcfactions.libs.bukkit.scoreboard.AresScoreboard;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
+import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.queue.impl.IArenaQueue;
 import net.hcfrevival.arena.queue.impl.RankedQueueEntry;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
+import net.hcfrevival.arena.team.TeamManager;
+import net.hcfrevival.arena.team.impl.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -21,12 +26,12 @@ import java.util.Optional;
 public final class ScoreboardUtil {
     /**
      * 63 --------------------
-     * 62
-     * 61
-     * 60
-     * 59
-     * 58
-     * 57
+     * 62 Match Duration
+     * 61 <blank></blank>
+     * 60 Player Ping 1 OR Team 1
+     * 59 Player Ping 2 OR Team 2
+     * 58 Team 3
+     * 57 Team 4
      * 56
      * 55
      * 54
@@ -63,15 +68,15 @@ public final class ScoreboardUtil {
      * 23
      * 22
      * 21
-     * 20
+     * 20 Vanish
      * 19
      * 18
      * 17
      * 16
      * 15
      * 14
-     * 13 Enderpearl
-     * 12 Crapple
+     * 13 Crapple
+     * 12 Enderpearl
      * 11 <blank space>
      * 10 <lobby reserved>
      * 9 <lobby reserved>
@@ -93,6 +98,20 @@ public final class ScoreboardUtil {
         scoreboard.setLine(2, ChatColor.RESET + " ");
         scoreboard.setLine(1, ChatColor.RED + "" + ChatColor.BOLD + "play.hcfrevival.net");
         scoreboard.setLine(63, ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + Strings.repeat("-", 24));
+    }
+
+    private static void applyCommandXToScoreboard(AresPlugin plugin, ArenaPlayer arenaPlayer) {
+        CXService cxs = (CXService) plugin.getService(CXService.class);
+
+        if (cxs == null) {
+            return;
+        }
+
+        if (cxs.getVanishManager().isVanished(arenaPlayer.getUniqueId())) {
+            arenaPlayer.getScoreboard().setLine(20, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Vanished");
+        } else if (arenaPlayer.getScoreboard().getLine(20) != null) {
+            arenaPlayer.getScoreboard().removeLine(20);
+        }
     }
 
     public static void applyCooldownsToScoreboard(ArenaPlayer arenaPlayer) {
@@ -117,6 +136,8 @@ public final class ScoreboardUtil {
 
         playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
             applyScoreboardTemplate(arenaPlayer.getScoreboard());
+            applyCommandXToScoreboard(plugin, arenaPlayer);
+
             arenaPlayer.getScoreboard().setLine(8, ChatColor.GOLD + "Online" + ChatColor.YELLOW + ": " + onlineCount);
             arenaPlayer.getScoreboard().setLine(7, ChatColor.GOLD + "In-Queue" + ChatColor.YELLOW + ": " + queueManager.getQueueRepository().size());
 
@@ -167,15 +188,34 @@ public final class ScoreboardUtil {
             applyScoreboardTemplate(arenaPlayer.getScoreboard());
             applyCooldownsToScoreboard(arenaPlayer);
 
-            arenaPlayer.getScoreboard().setLine(4, ChatColor.GOLD + session.getPlayerA().getUsername() + ChatColor.YELLOW + ": " + pingA + "ms");
-            arenaPlayer.getScoreboard().setLine(5, ChatColor.GOLD + session.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + pingB + "ms");
-            arenaPlayer.getScoreboard().setLine(6, ChatColor.RESET + "" + ChatColor.RESET);
-            arenaPlayer.getScoreboard().setLine(7, ChatColor.GOLD + "Match Duration" + ChatColor.YELLOW + ": " + sessionDuration);
+            arenaPlayer.getScoreboard().setLine(59, ChatColor.GOLD + session.getPlayerA().getUsername() + ChatColor.YELLOW + ": " + pingA + "ms");
+            arenaPlayer.getScoreboard().setLine(60, ChatColor.GOLD + session.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + pingB + "ms");
+            arenaPlayer.getScoreboard().setLine(61, ChatColor.RESET + "" + ChatColor.RESET);
+            arenaPlayer.getScoreboard().setLine(62, ChatColor.GOLD + "Match Duration" + ChatColor.YELLOW + ": " + sessionDuration);
         });
     }
 
     public static void sendTeamScoreboard(ArenaPlugin plugin, Player player, TeamSession session) {
+        PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+        TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
+        String sessionDuration = Time.convertToHHMMSS(session.getDuration());
+        Optional<Team> selfQuery = teamManager.getTeam(player);
 
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> selfQuery.ifPresent(self -> {
+            applyScoreboardTemplate(arenaPlayer.getScoreboard());
+            applyCooldownsToScoreboard(arenaPlayer);
+
+            arenaPlayer.getScoreboard().setLine(58, ChatColor.GREEN + self.getDisplayName() + ChatColor.YELLOW + ": " + self.getMembersByState(EPlayerState.INGAME).size() + " Alive");
+
+            int cursor = 59;
+            for (Team team : session.getTeams().stream().filter(t -> !t.getUniqueId().equals(self.getUniqueId())).toList()) {
+                arenaPlayer.getScoreboard().setLine(cursor, ChatColor.RED + team.getDisplayName() + ChatColor.YELLOW + ": " + team.getMembersByState(EPlayerState.INGAME).size() + " Alive");
+                cursor -= 1;
+            }
+
+            arenaPlayer.getScoreboard().setLine(61, ChatColor.RESET + "" + ChatColor.RESET);
+            arenaPlayer.getScoreboard().setLine(62, ChatColor.GOLD + "Match Duration" + ChatColor.YELLOW + ": " + sessionDuration);
+        }));
     }
 
     public static void sendSpectatorScoreboard(ArenaPlugin plugin, Player player, ISession session) {
