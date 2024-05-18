@@ -77,7 +77,7 @@ public class DuelRequestExecutor {
             playerReceiver.getPlayer().ifPresent(p -> p.sendMessage(Component.text(playerSender.getUsername(), NamedTextColor.AQUA)
                     .appendSpace().append(Component.text("has sent you a", NamedTextColor.GRAY))
                     .appendSpace().append(gamerule.getDisplayNameComponent())
-                    .appendSpace().append(Component.text("duel request"))
+                    .appendSpace().append(Component.text("duel request", NamedTextColor.GRAY))
                     .appendSpace().append(Component.text("[Accept]", NamedTextColor.GREEN).clickEvent(ClickEvent.runCommand("/duel accept " + req.getId().toString())))));
 
             manager.getRequestRepository().add(req);
