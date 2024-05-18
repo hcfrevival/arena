@@ -3,6 +3,7 @@ package net.hcfrevival.arena.listener;
 import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import gg.hcfactions.libs.bukkit.utils.Worlds;
 import lombok.Getter;
+import net.hcfrevival.arena.APermissions;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.event.DuelMatchFinishEvent;
@@ -14,16 +15,33 @@ import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 
 public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
+    private void handleBlockInteraction(Player player, Block block, Cancellable cancellable) {
+        PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)
+                    || arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE)
+                    || arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE_DEAD)
+            ) {
+                cancellable.setCancelled(true);
+            }
+        });
+    }
+
     private void handleDeath(Player player, Player killer, boolean disconnect) {
         final SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
         final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
@@ -67,27 +85,13 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof final Player player)) {
-            return;
-        }
+    public void onBlockBreak(BlockBreakEvent event) {
+        handleBlockInteraction(event.getPlayer(), event.getBlock(), event);
+    }
 
-        final SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
-        final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
-
-        sessionManager.getSession(player).ifPresent(session -> {
-            if (!session.isActive()) {
-                event.setCancelled(true);
-                return;
-            }
-        });
-
-        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
-            if (!arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)) {
-                event.setCancelled(true);
-                return;
-            }
-        });
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        handleBlockInteraction(event.getPlayer(), event.getBlock(), event);
     }
 
     @EventHandler (priority = EventPriority.LOWEST)
@@ -114,5 +118,29 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
         }).delay(1L).run();
 
         handleDeath(player, killer, false);
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof final Player player)) {
+            return;
+        }
+
+        final SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
+        final PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+        sessionManager.getSession(player).ifPresent(session -> {
+            if (!session.isActive()) {
+                event.setCancelled(true);
+                return;
+            }
+        });
+
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (!arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)) {
+                event.setCancelled(true);
+                return;
+            }
+        });
     }
 }
