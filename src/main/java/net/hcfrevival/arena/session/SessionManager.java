@@ -27,6 +27,7 @@ import net.hcfrevival.arena.util.ArenaUtil;
 import net.hcfrevival.arena.util.LobbyUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -203,9 +204,12 @@ public final class SessionManager extends ArenaManager {
         session.getPlayers().stream().filter(arenaPlayer -> !session.isSpectating(arenaPlayer.getUniqueId())).forEach(ingamePlayer -> {
             ingamePlayer.setCurrentState(EPlayerState.INGAME);
             ingamePlayer.setStatHolder(new PlayerStatHolder(ingamePlayer.getUniqueId(), ingamePlayer.getUsername()));
+
             ingamePlayer.getPlayer().ifPresent(bukkitPlayer -> {
-                Players.resetHealth(bukkitPlayer);
+                bukkitPlayer.setGameMode(GameMode.SURVIVAL);
                 bukkitPlayer.getInventory().clear();
+
+                Players.resetHealth(bukkitPlayer);
                 kitManager.giveKitBooks(bukkitPlayer, session.getGamerule());
             });
         });
@@ -246,6 +250,9 @@ public final class SessionManager extends ArenaManager {
 
                 player.getPlayer().ifPresent(bukkitPlayer -> {
                     bukkitPlayer.teleport(plugin.getConfiguration().getSpawnLocation().getBukkitLocation());
+                    bukkitPlayer.setGameMode(GameMode.SURVIVAL);
+
+                    Players.resetHealth(bukkitPlayer);
                     LobbyUtil.giveLobbyItems(plugin, bukkitPlayer);
                 });
             });
