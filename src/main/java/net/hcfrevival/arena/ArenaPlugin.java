@@ -79,7 +79,9 @@ public final class ArenaPlugin extends AresPlugin {
         cis.registerNewItem(new DefaultKitBook(this));
         cis.registerNewItem(new DisbandTeamItem(this));
         cis.registerNewItem(new TeamListItem(this));
+        cis.registerNewItem(new LeaveTeamItem(this));
         registerService(cis);
+
         registerService(new CXService(this));
         registerService(new AccountService(this, configuration.getMongoDatabaseName()));
         registerService(new SyncService(this, configuration.getMongoDatabaseName()));

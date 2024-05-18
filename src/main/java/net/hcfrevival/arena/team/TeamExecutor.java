@@ -31,11 +31,12 @@ public class TeamExecutor {
                 return;
             }
 
-            LobbyUtil.givePartyLeaderItems(manager.getPlugin(), player);
             arenaPlayer.setCurrentState(EPlayerState.LOBBY_IN_PARTY);
 
             Team team = new Team(arenaPlayer);
             manager.getTeamRepository().add(team);
+
+            LobbyUtil.giveLobbyItems(manager.getPlugin(), player);
 
             promise.resolve();
         }, () -> promise.reject("Failed to load your profile"));
@@ -43,7 +44,7 @@ public class TeamExecutor {
 
     public void disbandTeam(Player player, Promise promise) {
         manager.getTeam(player).ifPresentOrElse(team -> {
-            team.sendMessage(Component.text("Team Disbanded", NamedTextColor.YELLOW));
+            manager.getTeamRepository().remove(team);
 
             team.getFullMembers().forEach(teamMember -> {
                 if (teamMember.getCurrentState().equals(EPlayerState.LOBBY_IN_PARTY) || teamMember.getCurrentState().equals(EPlayerState.LOBBY_IN_QUEUE)) {
@@ -54,7 +55,8 @@ public class TeamExecutor {
                 teamMember.getPlayer().ifPresent(teamPlayer -> LobbyUtil.giveLobbyItems(manager.getPlugin(), teamPlayer));
             });
 
-            manager.getTeamRepository().remove(team);
+            team.sendMessage(Component.text("Team Disbanded", NamedTextColor.YELLOW));
+            promise.resolve();
         }, () -> promise.reject("You are not on a team"));
     }
 
