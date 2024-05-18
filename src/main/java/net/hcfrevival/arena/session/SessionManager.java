@@ -3,6 +3,7 @@ package net.hcfrevival.arena.session;
 import com.google.common.collect.Sets;
 import gg.hcfactions.libs.base.util.Time;
 import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
+import gg.hcfactions.libs.bukkit.utils.Players;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.ArenaMessage;
@@ -200,7 +201,11 @@ public final class SessionManager extends ArenaManager {
         session.getPlayers().stream().filter(arenaPlayer -> !session.isSpectating(arenaPlayer.getUniqueId())).forEach(ingamePlayer -> {
             ingamePlayer.setCurrentState(EPlayerState.INGAME);
             ingamePlayer.setStatHolder(new PlayerStatHolder(ingamePlayer.getUniqueId(), ingamePlayer.getUsername()));
-            ingamePlayer.getPlayer().ifPresent(bukkitPlayer -> kitManager.giveKitBooks(bukkitPlayer, session.getGamerule()));
+            ingamePlayer.getPlayer().ifPresent(bukkitPlayer -> {
+                Players.resetHealth(bukkitPlayer);
+                bukkitPlayer.getInventory().clear();
+                kitManager.giveKitBooks(bukkitPlayer, session.getGamerule());
+            });
         });
 
         sessionRepository.add(session);
