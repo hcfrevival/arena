@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public final class ArenaConfig {
     @Getter public String mongoUri;
     @Getter public String mongoDatabaseName;
+    @Getter public String rankedProfileCollectionName;
     @Getter public String redisUri;
 
     @Getter public PLocatable spawnLocation;
@@ -40,6 +41,7 @@ public final class ArenaConfig {
 
         this.mongoUri = conf.getString("db.mongo.uri");
         this.mongoDatabaseName = conf.getString("db.mongo.database");
+        this.rankedProfileCollectionName = conf.getString("db.mongo.collections.ranked_profiles");
         this.redisUri = conf.getString("db.redis.uri");
 
         this.spawnLocation = Configs.parsePlayerLocation(conf, "locations.spawn");

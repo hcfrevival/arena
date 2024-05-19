@@ -82,6 +82,10 @@ public class DuelSession implements ISession {
         return Optional.of(loser);
     }
 
+    public Optional<PlayerStatHolder> getStats(ArenaPlayer player) {
+        return finalStats.stream().filter(s -> s.getOwner().equals(player.getUniqueId())).findFirst();
+    }
+
     @Override
     public void teleportAll() {
         final PLocatable spawnA = arena.getSpawnpoints().get(0);

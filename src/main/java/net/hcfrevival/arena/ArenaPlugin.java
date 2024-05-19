@@ -20,6 +20,7 @@ import net.hcfrevival.arena.level.LevelManager;
 import net.hcfrevival.arena.listener.*;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.queue.QueueManager;
+import net.hcfrevival.arena.ranked.RankedManager;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.timer.TimerManager;
@@ -100,6 +101,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerManager(new TimerManager(this));
         registerManager(new KitManager(this));
         registerManager(new TeamManager(this));
+        registerManager(new RankedManager(this));
         managers.values().forEach(ArenaManager::onEnable);
 
         // listeners
@@ -112,6 +114,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerListener(new TimerListener(this));
         registerListener(new LevelBuilderListener(this));
         registerListener(new TeamListener(this));
+        registerListener(new RankedDataListener(this));
     }
 
     @Override

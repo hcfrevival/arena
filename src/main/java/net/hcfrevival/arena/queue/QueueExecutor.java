@@ -7,8 +7,13 @@ import net.hcfrevival.arena.event.PlayerJoinQueueEvent;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.queue.impl.RankedQueueEntry;
 import net.hcfrevival.arena.queue.impl.UnrankedQueueEntry;
+import net.hcfrevival.arena.ranked.IRankedProfile;
+import net.hcfrevival.arena.ranked.RankedManager;
+import net.hcfrevival.arena.ranked.impl.RankedPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.Optional;
 
 @AllArgsConstructor
 public final class QueueExecutor {
@@ -33,12 +38,25 @@ public final class QueueExecutor {
     }
 
     public void addToRankedQueue(Player player, EGamerule gamerule, Promise promise) {
+        RankedManager rankedManager = (RankedManager) manager.getPlugin().getManagers().get(RankedManager.class);
+
         if (manager.getQueue(player).isPresent()) {
             promise.reject("You are already in queue. Please leave your current queue to join a different one.");
             return;
         }
 
-        final RankedQueueEntry queueEntry = new RankedQueueEntry(player.getUniqueId(), gamerule, 1000); // TODO: Pull this rating from a query
+        if (!rankedManager.isProfileLoaded(player.getUniqueId())) {
+            promise.reject("Your Ranked data is not loaded");
+            return;
+        }
+
+        final Optional<IRankedProfile> profileQuery = rankedManager.getProfile(player.getUniqueId());
+        if (profileQuery.isEmpty()) {
+            promise.reject("Failed to load your Ranked data");
+            return;
+        }
+
+        final RankedQueueEntry queueEntry = new RankedQueueEntry(player.getUniqueId(), gamerule, profileQuery.get().getRating(gamerule));
         final PlayerJoinQueueEvent event = new PlayerJoinQueueEvent(player, queueEntry);
 
         Bukkit.getPluginManager().callEvent(event);;
