@@ -67,6 +67,11 @@ public final class KitEditorMenu implements IMenu {
                     continue;
                 }
 
+                String itemName = item.getType().name();
+                if (itemName.endsWith("_HELMET") || itemName.endsWith("_CHESTPLATE") || itemName.endsWith("_LEGGINGS") || itemName.endsWith("_BOOTS")) {
+                    continue;
+                }
+
                 if (item.getType().equals(Material.POTION) || item.getType().equals(Material.SPLASH_POTION) || item.getType().equals(Material.LINGERING_POTION)) {
                     PotionMeta potionMeta = (PotionMeta) item.getItemMeta();
 
@@ -161,7 +166,7 @@ public final class KitEditorMenu implements IMenu {
         ));
 
         for (int i = 0; i < uniqueItems.size(); i++) {
-            final int pos = 28 + i;
+            final int pos = 27 + i;
             final ItemStack item = uniqueItems.get(i);
 
             addItem(new Clickable(
