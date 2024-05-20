@@ -48,6 +48,12 @@ public class DuelRequestExecutor {
             return;
         }
 
+        ArenaPlayer receiverArenaPlayer = receiverQuery.get();
+        if (!receiverArenaPlayer.getCurrentState().equals(EPlayerState.LOBBY)) {
+            promise.reject(receiverArenaPlayer.getUsername() + " is not in the lobby");
+            return;
+        }
+
         KitSelectMenu menu = new KitSelectMenu(manager.getPlugin(), sender, new FailablePromise<>() {
             @Override
             public void resolve(EGamerule gamerule) {
@@ -106,6 +112,16 @@ public class DuelRequestExecutor {
 
     public <T> void accept(IDuelRequest<T> request, Promise promise) {
         if (request instanceof final PlayerDuelRequest playerRequest) {
+            if (!playerRequest.getReceiver().isInLobby()) {
+                promise.reject("Receiving player is not in the lobby");
+                return;
+            }
+
+            if (!playerRequest.getSender().isInLobby()) {
+                promise.reject("Sender player is not in the lobby");
+                return;
+            }
+
             Optional<DuelSession> sessionAttempt = manager.getSessionManager().createDuelSession(
                     request.getGamerule(),
                     playerRequest.getSender(),
@@ -124,6 +140,16 @@ public class DuelRequestExecutor {
         }
 
         else if (request instanceof final TeamDuelRequest teamRequest) {
+            if (!teamRequest.getReceiver().getLeader().isInLobby()) {
+                promise.reject("Receiving team is not in the lobby");
+                return;
+            }
+
+            if (!teamRequest.getSender().getLeader().isInLobby()) {
+                promise.reject("Sending team is not in the lobby");
+                return;
+            }
+
             Optional<TeamSession> sessionAttempt = manager.getSessionManager().createTeamSession(
                     request.getGamerule(),
                     List.of(teamRequest.getSender(), teamRequest.getReceiver())
