@@ -6,6 +6,8 @@ import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.team.TeamManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,6 +38,7 @@ public final class TeamListener implements Listener {
 
         teamManager.getTeam(attacker).ifPresent(team -> {
             if (team.isMember(attacked.getUniqueId())) {
+                attacker.sendMessage(Component.text("You can not attack your team", NamedTextColor.RED));
                 event.setCancelled(true);
             }
         });
