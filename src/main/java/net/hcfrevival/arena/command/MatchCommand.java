@@ -4,6 +4,7 @@ import gg.hcfactions.libs.acf.BaseCommand;
 import gg.hcfactions.libs.acf.annotation.CommandAlias;
 import gg.hcfactions.libs.acf.annotation.Description;
 import gg.hcfactions.libs.acf.annotation.Subcommand;
+import gg.hcfactions.libs.acf.annotation.Syntax;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
@@ -24,6 +25,7 @@ public final class MatchCommand extends BaseCommand {
 
     @Subcommand("invsee|inv")
     @Description("View a post-match inventory")
+    @Syntax("<match> <username>")
     public void onInventorySee(Player player, String matchId, String username) {
         final UUID matchUid;
         try {
