@@ -1,5 +1,6 @@
 package net.hcfrevival.arena.ranked;
 
+import com.google.common.collect.Maps;
 import gg.hcfactions.libs.base.connect.impl.mongo.MongoDocument;
 import net.hcfrevival.arena.gamerule.EGamerule;
 
@@ -11,7 +12,15 @@ public interface IRankedProfile extends MongoDocument {
     Map<EGamerule, Integer> getRatings();
 
     default int getRating(EGamerule gamerule) {
-        return getRatings().getOrDefault(gamerule, 1000);
+        if (gamerule == null) {
+            throw new NullPointerException("Gamerule can not be null");
+        }
+
+        if (getRatings() == null || !getRatings().containsKey(gamerule)) {
+            return 1000;
+        }
+
+        return getRatings().get(gamerule);
     }
 
     default void setRating(EGamerule gamerule, int rating) {
