@@ -68,6 +68,10 @@ public record StatsListener(@Getter ArenaPlugin plugin) implements Listener {
         });
 
         playerManager.getPlayer(damaged.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (arenaPlayer.getStatHolder() == null) {
+                return;
+            }
+
             arenaPlayer.getStatHolder().resetCurrentCombo();
         });
     }
