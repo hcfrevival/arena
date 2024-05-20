@@ -1,10 +1,12 @@
 package net.hcfrevival.arena.team;
 
 import gg.hcfactions.libs.base.consumer.Promise;
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.APermissions;
 import net.hcfrevival.arena.player.PlayerManager;
+import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.SessionManager;
@@ -150,6 +152,7 @@ public class TeamExecutor {
                 }
 
                 team.getInvitedMembers().add(invited.getUniqueId());
+                new Scheduler(manager.getPlugin()).sync(() -> team.getInvitedMembers().remove(invited.getUniqueId())).delay(30 * 20L).run();
 
                 team.sendMessage(Component.text(player.getName(), NamedTextColor.AQUA)
                         .appendSpace().append(Component.text("has invited", NamedTextColor.GRAY))
@@ -169,6 +172,47 @@ public class TeamExecutor {
     }
 
     public void kickMember(Player player, String username, Promise promise) {
+        PlayerManager playerManager = (PlayerManager) manager.getPlugin().getManagers().get(PlayerManager.class);
+        boolean bypass = (player.hasPermission(APermissions.A_ADMIN) || player.hasPermission(APermissions.A_MOD));
 
+        Player kickedPlayer = Bukkit.getPlayer(username);
+        if (kickedPlayer == null || !kickedPlayer.isOnline()) {
+            promise.reject("Player not found");
+            return;
+        }
+
+        Optional<ArenaPlayer> kickedArenaPlayerQuery = playerManager.getPlayer(kickedPlayer.getUniqueId());
+        if (kickedArenaPlayerQuery.isEmpty()) {
+            promise.reject("Player not found");
+            return;
+        }
+
+        Optional<Team> teamQuery = manager.getTeam(player);
+        if (teamQuery.isEmpty()) {
+            promise.reject("You are not on a team");
+            return;
+        }
+
+        ArenaPlayer kickedArenaPlayer = kickedArenaPlayerQuery.get();
+        Team team = teamQuery.get();
+        if (!team.getLeader().getUniqueId().equals(player.getUniqueId()) && !bypass) {
+            promise.reject("You do not have permission to perform this action");
+            return;
+        }
+
+        if (!kickedArenaPlayer.isInLobby()) {
+            promise.reject(kickedArenaPlayer.getUsername() + " is not in the lobby");
+            return;
+        }
+
+        team.removeMember(kickedArenaPlayer);
+        team.sendMessage(Component.text(player.getName(), NamedTextColor.AQUA)
+                .appendSpace().append(Component.text("has kicked", NamedTextColor.GRAY))
+                .appendSpace().append(Component.text(kickedPlayer.getName(), NamedTextColor.AQUA))
+                .appendSpace().append(Component.text("from the team")));
+
+        kickedPlayer.sendMessage(Component.text("You have been kicked from your team", NamedTextColor.YELLOW));
+
+        promise.resolve();
     }
 }
