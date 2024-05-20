@@ -2,11 +2,14 @@ package net.hcfrevival.arena.menu;
 
 import com.google.common.collect.Lists;
 import gg.hcfactions.libs.bukkit.AresPlugin;
+import gg.hcfactions.libs.bukkit.builder.impl.ItemBuilder;
 import gg.hcfactions.libs.bukkit.menu.impl.Clickable;
 import gg.hcfactions.libs.bukkit.menu.impl.GenericMenu;
 import lombok.Getter;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -54,6 +57,21 @@ public final class RecapMenu extends GenericMenu {
 
             addItem(new Clickable(skull, 49, click -> {}));
         }
+
+        ItemStack healthItem = new ItemBuilder()
+                .setMaterial(Material.GLISTERING_MELON_SLICE)
+                .setName(Component.text("Health", NamedTextColor.RED))
+                .addLore(Component.text(String.format("%.1f", (holder.getHealth() / 2)) + " ♥"))
+                .build();
+
+        ItemStack foodItem = new ItemBuilder()
+                .setMaterial(Material.COOKED_BEEF)
+                .setName(Component.text("Food", NamedTextColor.GOLD))
+                .addLore(Component.text(holder.getFoodLevel() / 2) + "/10")
+                .build();
+
+        addItem(new Clickable(healthItem, 52, click -> {}));
+        addItem(new Clickable(foodItem, 53, click -> {}));
 
         super.open();
     }
