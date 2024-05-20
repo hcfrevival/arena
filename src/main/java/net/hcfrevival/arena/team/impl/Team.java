@@ -3,6 +3,7 @@ package net.hcfrevival.arena.team.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.Getter;
+import lombok.Setter;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.kyori.adventure.text.Component;
@@ -11,13 +12,14 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class Team {
     @Getter public final UUID uniqueId;
-    @Getter public final ArenaPlayer leader;
+    @Getter @Setter public ArenaPlayer leader;
     @Getter public final Set<ArenaPlayer> members;
     @Getter public final Set<UUID> invitedMembers;
 
@@ -39,6 +41,16 @@ public final class Team {
         res.add(leader);
         res.addAll(members);
         return res;
+    }
+
+    public Optional<ArenaPlayer> getNewLeader() {
+        List<ArenaPlayer> members = getFullMembers();
+
+        if (members.size() <= 1) {
+            return Optional.empty();
+        }
+
+        return members.stream().filter(member -> !member.equals(leader)).findFirst();
     }
 
     public List<ArenaPlayer> getMembersByState(EPlayerState state) {

@@ -23,6 +23,19 @@ public final class TeamListener implements Listener {
         PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
         TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
 
+        teamManager.getTeam(player.getUniqueId()).ifPresent(team -> {
+            if (team.getLeader().getUniqueId().equals(player.getUniqueId())) {
+                team.getNewLeader().ifPresentOrElse(newLeader -> {
+                    team.setLeader(newLeader);
+
+                    team.sendMessage(Component.text(newLeader.getUsername(), NamedTextColor.AQUA)
+                            .appendSpace().append(Component.text("has been appointed as the new team leader", NamedTextColor.GRAY)));
+                }, () -> teamManager.getTeamRepository().remove(team));
+            }
+
+            playerManager.getPlayer(player.getUniqueId()).ifPresent(team::removeMember);
+        });
+
         playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> teamManager.getTeam(player).ifPresent(team -> team.removeMember(arenaPlayer)));
     }
 
