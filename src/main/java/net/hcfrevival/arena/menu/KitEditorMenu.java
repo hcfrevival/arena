@@ -3,6 +3,7 @@ package net.hcfrevival.arena.menu;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import gg.hcfactions.libs.base.consumer.Promise;
 import gg.hcfactions.libs.base.util.Strings;
 import gg.hcfactions.libs.bukkit.builder.impl.ItemBuilder;
 import gg.hcfactions.libs.bukkit.menu.IMenu;
@@ -14,6 +15,7 @@ import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.kit.KitManager;
 import net.hcfrevival.arena.kit.impl.PlayerKit;
+import net.hcfrevival.arena.util.KitFilterUtil;
 import net.hcfrevival.arena.util.LobbyUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -92,11 +94,6 @@ public final class KitEditorMenu implements IMenu {
             new Scheduler(plugin).sync(player::closeInventory).delay(1L).run();
         });
 
-        Optional<PlayerKit> existingKitQuery = kitManager.getPlayerKit(player, gamerule).stream().findFirst();
-        existingKitQuery.ifPresentOrElse(playerKit -> playerKit.apply(player, false), () -> {
-
-        });
-
         kitManager.getPlayerKit(player, gamerule).ifPresentOrElse(playerKit ->
                 playerKit.apply(player, false),
         () -> kitManager.getDefaultKit(gamerule).ifPresent(defaultKit ->
@@ -117,11 +114,22 @@ public final class KitEditorMenu implements IMenu {
                             Arrays.asList(player.getInventory().getArmorContents())
                     );
 
+                    KitFilterUtil.isValid(Arrays.asList(player.getInventory().getContents()), gamerule, new Promise() {
+                        @Override
+                        public void resolve() {
+                            player.sendMessage(Component.text("Your kit passed ranked played validation"));
+                        }
+
+                        @Override
+                        public void reject(String s) {
+                            player.sendMessage(Component.text("Your kit failed ranked play validation: " + s, NamedTextColor.RED));
+                            player.sendMessage(Component.text("This kit can still be used in duels and unranked play", NamedTextColor.GRAY));
+                        }
+                    });
+
                     kitManager.savePlayerKit(player, playerKit);
+
                     player.closeInventory();
-
-                    // TODO: Do validation here and warn player if their kit is invalid for ranked play
-
                     player.sendMessage(Component.text("Kit Saved", NamedTextColor.GREEN));
                 }
         ));
