@@ -69,6 +69,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerCommand(new KitCommand(this));
         registerCommand(new TeamCommand(this));
         registerCommand(new DuelCommand(this));
+        registerCommand(new DebugCommand(this));
 
         // services
         // custom item service

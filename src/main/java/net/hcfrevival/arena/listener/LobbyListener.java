@@ -1,5 +1,6 @@
 package net.hcfrevival.arena.listener;
 
+import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
@@ -9,11 +10,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.Optional;
@@ -54,7 +57,14 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         final Player player = event.getPlayer();
-        handleGenericLobbyEvent(player, event, false);
+        CustomItemService cis = (CustomItemService) plugin.getService(CustomItemService.class);
+
+        if (cis != null && cis.getItem(event.getItemDrop().getItemStack()).isPresent()) {
+            handleGenericLobbyEvent(player, event, false);
+            return;
+        }
+
+        event.getItemDrop().remove();
     }
 
     @EventHandler
@@ -76,5 +86,12 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         final Player player = event.getPlayer();
         handleGenericLobbyEvent(player, event, true);
+    }
+
+    @EventHandler
+    public void onBlockInteract(PlayerInteractEvent event) {
+        if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+            handleGenericLobbyEvent(event.getPlayer(), event, true);
+        }
     }
 }

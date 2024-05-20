@@ -2,10 +2,15 @@ package net.hcfrevival.arena.items;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import gg.hcfactions.libs.base.consumer.FailablePromise;
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import gg.hcfactions.libs.bukkit.services.impl.items.ICustomItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.gamerule.EGamerule;
+import net.hcfrevival.arena.menu.KitEditorMenu;
+import net.hcfrevival.arena.menu.KitSelectMenu;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
@@ -76,7 +81,24 @@ public final class EditKitItem implements ICustomItem {
 
     @Override
     public Runnable getRightClick(Player who) {
-        return () -> who.sendMessage("warpToKitEditor");
+        return () -> {
+            KitSelectMenu selectMenu = new KitSelectMenu(plugin, who, new FailablePromise<>() {
+                @Override
+                public void resolve(EGamerule eGamerule) {
+                    new Scheduler(plugin).sync(() -> {
+                        KitEditorMenu editorMenu = new KitEditorMenu(plugin, who, eGamerule);
+                        editorMenu.open();
+                    }).delay(1L).run();
+                }
+
+                @Override
+                public void reject(String s) {
+                    who.sendMessage(Component.text("An error has occurred. Please try again later.", NamedTextColor.RED));
+                }
+            });
+
+            selectMenu.open();
+        };
     }
 }
 
