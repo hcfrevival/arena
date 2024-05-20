@@ -65,6 +65,12 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
             }
 
             else if (session instanceof final TeamSession teamSession) {
+                if (disconnect) {
+                    player.getInventory().forEach(item -> {
+                        if (item != null) player.getWorld().dropItem(player.getLocation(), item);
+                    });
+                }
+
                 playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> arenaPlayer.setCurrentState(EPlayerState.SPECTATE_DEAD));
 
                 if (teamSession.hasWinner()) {
