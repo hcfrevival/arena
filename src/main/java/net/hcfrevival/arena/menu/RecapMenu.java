@@ -61,13 +61,13 @@ public final class RecapMenu extends GenericMenu {
         ItemStack healthItem = new ItemBuilder()
                 .setMaterial(Material.GLISTERING_MELON_SLICE)
                 .setName(Component.text("Health", NamedTextColor.RED))
-                .addLore(Component.text(String.format("%.1f", (holder.getHealth() / 2)) + " ♥"))
+                .addLore(Component.text(String.format("%.1f", (holder.getHealth() / 2)) + " ♥", NamedTextColor.YELLOW))
                 .build();
 
         ItemStack foodItem = new ItemBuilder()
                 .setMaterial(Material.COOKED_BEEF)
                 .setName(Component.text("Food", NamedTextColor.GOLD))
-                .addLore(Component.text(holder.getFoodLevel() / 2) + "/10")
+                .addLore(Component.text((holder.getFoodLevel() / 2) + "/10", NamedTextColor.YELLOW))
                 .build();
 
         addItem(new Clickable(healthItem, 52, click -> {}));
