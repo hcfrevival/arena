@@ -44,6 +44,7 @@
                                     <include>gg.hcfactions.libs:base</include>
                                     <include>gg.hcfactions.libs:bukkit</include>
                                     <include>gg.hcfactions:CX</include>
+                                    <include>net.hcfrevival:REVNET</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -149,11 +150,17 @@
             <scope>test</scope>
         </dependency>
 
-
         <!-- command x -->
         <dependency>
             <groupId>gg.hcfactions</groupId>
             <artifactId>CX</artifactId>
+            <version>1.20.5</version>
+        </dependency>
+
+        <!-- revnet -->
+        <dependency>
+            <groupId>net.hcfrevival</groupId>
+            <artifactId>REVNET</artifactId>
             <version>1.20.5</version>
         </dependency>
 

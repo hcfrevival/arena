@@ -94,6 +94,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerService(new PunishmentService(this, configuration.getMongoDatabaseName()));
         registerService(new RankService(this));
         registerService(new ReportService(this));
+        // registerService(new RNService(this));
         startServices();
 
         // managers
