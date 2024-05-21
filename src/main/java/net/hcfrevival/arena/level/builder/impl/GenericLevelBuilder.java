@@ -101,8 +101,9 @@ public class GenericLevelBuilder implements ILevelBuilder<DuelArenaInstance> {
         }
 
         owner.registerInstance(instance);
-        builderManager.getLevelManager().saveArena(owner);
-        builderManager.getBuilderRepository().remove(this);
+        builderManager.getLevelManager().saveArenaInstance(instance);
+        builderManager.getLevelManager().saveArena(instance.getOwner(), false);
+        builderManager.getBuilderRepository().removeIf(builder -> builder.getBuilderId().equals(builderId));
         getPlayer().ifPresent(player -> player.sendMessage(Component.text("Instance has been created", NamedTextColor.GREEN)));
     }
 

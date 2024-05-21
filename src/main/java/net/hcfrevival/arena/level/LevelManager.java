@@ -1,6 +1,7 @@
 package net.hcfrevival.arena.level;
 
 import com.google.common.collect.Lists;
+import gg.hcfactions.libs.bukkit.location.ILocatable;
 import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import gg.hcfactions.libs.bukkit.utils.Configs;
 import lombok.Getter;
@@ -103,7 +104,23 @@ public final class LevelManager extends ArenaManager {
         plugin.getAresLogger().info("Loaded {} Arenas", arenaRepository.size());
     }
 
-    public void saveArena(IArena arena) {
+    public void saveArenaInstance(IArenaInstance instance) {
+        YamlConfiguration conf = plugin.loadConfiguration("arenas");
+        String path = "data." + instance.getOwner().getName() + ".instances." + instance.getUniqueId().toString() + ".";
+
+        Configs.writePlayerLocation(conf, path + "spectator_spawnpoint", instance.getSpectatorSpawnpoint());
+        Configs.writeBlockLocation(conf, path + "region.a", instance.getRegion().getCornerA());
+        Configs.writeBlockLocation(conf, path + "region.b", instance.getRegion().getCornerB());
+
+        for (PLocatable spawnpoint : instance.getSpawnpoints()) {
+            Configs.writePlayerLocation(conf, path + "spawnpoints." + UUID.randomUUID(), spawnpoint);
+        }
+
+        plugin.saveConfiguration("arenas", conf);
+        plugin.getAresLogger().info("Saved {} Arena Instance", instance.getUniqueId().toString());
+    }
+
+    public void saveArena(IArena arena, boolean saveInstances) {
         YamlConfiguration conf = plugin.loadConfiguration("arenas");
         String path = "data." + arena.getName() + ".";
 
@@ -111,21 +128,30 @@ public final class LevelManager extends ArenaManager {
         conf.set(path + "team", (arena instanceof TeamArena));
         conf.set(path + "authors", arena.getAuthors());
 
-        arena.getInstances().forEach(inst -> {
-            String instPath = path + "instances." + inst.getUniqueId().toString() + ".";
+        if (saveInstances) {
+            arena.getInstances().forEach(inst -> {
+                String instPath = path + "instances." + inst.getUniqueId().toString() + ".";
 
-            Configs.writePlayerLocation(conf, instPath + "spectator_spawnpoint", inst.getSpectatorSpawnpoint());
-            Configs.writeBlockLocation(conf, instPath + "region.a", inst.getRegion().getCornerA());
-            Configs.writeBlockLocation(conf, instPath + "region.b", inst.getRegion().getCornerB());
+                Configs.writePlayerLocation(conf, instPath + "spectator_spawnpoint", inst.getSpectatorSpawnpoint());
+                Configs.writeBlockLocation(conf, instPath + "region.a", inst.getRegion().getCornerA());
+                Configs.writeBlockLocation(conf, instPath + "region.b", inst.getRegion().getCornerB());
 
-            inst.getSpawnpoints().forEach(spawnpoint -> {
-                UUID id = UUID.randomUUID();
-                Configs.writePlayerLocation(conf, instPath + "spawnpoints." + id, spawnpoint);
+                inst.getSpawnpoints().forEach(spawnpoint -> {
+                    UUID id = UUID.randomUUID();
+                    Configs.writePlayerLocation(conf, instPath + "spawnpoints." + id, spawnpoint);
+                });
             });
-        });
+        }
 
         plugin.saveConfiguration("arenas", conf);
         plugin.getAresLogger().info("Saved {} Arena", arena.getName());
+    }
+
+    public void deleteArenaInstance(IArenaInstance instance) {
+        YamlConfiguration conf = plugin.loadConfiguration("arenas");
+        conf.set("data." + instance.getOwner().getName() + "." + instance.getUniqueId().toString(), null);
+        plugin.saveConfiguration("arenas", conf);
+        plugin.getAresLogger().info("Deleted an instance from {}", instance.getOwner().getName());
     }
 
     public void deleteArena(IArena arena) {
@@ -139,6 +165,23 @@ public final class LevelManager extends ArenaManager {
      */
     public Optional<IArena> getArenaByName(String name) {
         return arenaRepository.stream().filter(a -> a.getName().equalsIgnoreCase(name)).findFirst();
+    }
+
+    /**
+     * Queries an Arena Instance by location
+     * @param locatable Location
+     * @return Optional of Arena Instance
+     */
+    public Optional<IArenaInstance> getInstanceByLocation(ILocatable locatable) {
+        for (IArena arena : arenaRepository) {
+            for (IArenaInstance instance : arena.getInstances()) {
+                if (instance.getRegion().isInside(locatable, false)) {
+                    return Optional.of(instance);
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     /**

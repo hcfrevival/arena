@@ -70,6 +70,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerCommand(new TeamCommand(this));
         registerCommand(new DuelCommand(this));
         registerCommand(new DebugCommand(this));
+        registerCommand(new SpawnCommand(this));
 
         // services
         // custom item service
@@ -116,6 +117,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerListener(new LevelBuilderListener(this));
         registerListener(new TeamListener(this));
         registerListener(new RankedDataListener(this));
+        registerListener(new WorldListener());
     }
 
     @Override

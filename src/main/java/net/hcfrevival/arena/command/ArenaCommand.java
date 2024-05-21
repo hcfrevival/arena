@@ -10,13 +10,13 @@ import lombok.Getter;
 import net.hcfrevival.arena.APermissions;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.level.LevelManager;
-import net.hcfrevival.arena.level.builder.ERegionCorner;
 import net.hcfrevival.arena.level.builder.impl.GenericLevelBuilder;
+import net.hcfrevival.arena.menu.ArenaMenu;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.units.qual.A;
 
 @AllArgsConstructor
 @CommandAlias("arena")
@@ -119,22 +119,49 @@ public final class ArenaCommand extends BaseCommand {
     @Description("Remove the Arena Instance you are current located inside of from the server.")
     @CommandPermission(APermissions.A_ADMIN)
     public void onArenaRemove(Player player) {
+        LevelManager levelManager = (LevelManager) plugin.getManagers().get(LevelManager.class);
 
+        levelManager.getInstanceByLocation(new PLocatable(player)).ifPresentOrElse(instance -> {
+            instance.getOwner().getInstances().remove(instance);
+            levelManager.deleteArenaInstance(instance);
+
+            player.sendMessage(Component.text("Instance has been deleted", NamedTextColor.YELLOW));
+        }, () -> {
+            player.sendMessage(Component.text("Instance not found", NamedTextColor.RED));
+        });
     }
 
     @Subcommand("list")
     @Description("Open a GUI with a detailed list of each Arena on the server.")
     @CommandPermission(APermissions.A_MOD)
     @Syntax("[page]")
-    public void onArenaList(Player player, @Optional int page) {
-
+    public void onArenaList(Player player) {
+        ArenaMenu menu = new ArenaMenu(plugin, player, ((LevelManager)plugin.getManagers().get(LevelManager.class)).getArenaRepository());
+        menu.open();
     }
 
     @Subcommand("info")
     @Description("View detailed information about the Arena Instance you are standing inside")
     @CommandPermission(APermissions.A_MOD)
     public void onArenaInfo(Player player) {
+        LevelManager levelManager = (LevelManager) plugin.getManagers().get(LevelManager.class);
 
+        levelManager.getInstanceByLocation(new PLocatable(player)).ifPresent(instance -> {
+            player.sendMessage(Component.text("Parent", NamedTextColor.GREEN).append(Component.text(": " + instance.getOwner().getName())));
+
+            player.sendMessage(Component.text("Spectator Spawnpoint"));
+            Component spectatorComponent = Component.text(instance.getSpectatorSpawnpoint().toString(), NamedTextColor.WHITE)
+                            .clickEvent(ClickEvent.runCommand("/teleport " + instance.getSpectatorSpawnpoint().getWorldName() + " " + instance.getSpectatorSpawnpoint().getX() + " " + instance.getSpectatorSpawnpoint().getY() + " " + instance.getSpectatorSpawnpoint().getZ()));
+            player.sendMessage(spectatorComponent);
+
+            player.sendMessage(Component.text("Spawnpoints", NamedTextColor.BLUE).append(Component.text(":", NamedTextColor.WHITE)));
+            instance.getSpawnpoints().forEach(spawnpoint -> {
+                Component component = Component.text(spawnpoint.toString(), NamedTextColor.WHITE)
+                        .clickEvent(ClickEvent.runCommand("/teleport " + spawnpoint.getWorldName() + " " + spawnpoint.getX() + " " + spawnpoint.getY() + " " + spawnpoint.getZ()));
+
+                player.sendMessage(component);
+            });
+        });
     }
 
     @HelpCommand
