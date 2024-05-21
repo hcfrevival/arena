@@ -59,7 +59,7 @@ public final class LevelManager extends ArenaManager {
         for (String arenaName : Objects.requireNonNull(conf.getConfigurationSection("data")).getKeys(false)) {
             String path = "data." + arenaName + ".";
             String displayNameUnformatted = conf.getString(path + "display_name");
-            Component formattedDisplayName = LegacyComponentSerializer.legacySection().deserialize(Objects.requireNonNull(displayNameUnformatted));
+            Component formattedDisplayName = plugin.getMiniMessage().deserialize(Objects.requireNonNull(displayNameUnformatted));
             boolean isTeamArena = conf.getBoolean(path + "team");
             String authors = conf.getString(path + "authors");
             IArena arena = (isTeamArena)
