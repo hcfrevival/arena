@@ -1,7 +1,9 @@
 package net.hcfrevival.arena.listener;
 
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import lombok.Getter;
+import net.hcfrevival.arena.APermissions;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
@@ -42,7 +44,9 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
+
         LobbyUtil.giveLobbyItems(plugin, player);
+        new Scheduler(plugin).sync(() -> player.teleport(plugin.getConfiguration().getSpawnLocation().getBukkitLocation())).delay(1L).run();
     }
 
     @EventHandler
@@ -79,19 +83,20 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         final Player player = event.getPlayer();
-        handleGenericLobbyEvent(player, event, true);
+        handleGenericLobbyEvent(player, event, player.hasPermission(APermissions.A_ADMIN));
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         final Player player = event.getPlayer();
-        handleGenericLobbyEvent(player, event, true);
+        handleGenericLobbyEvent(player, event, player.hasPermission(APermissions.A_ADMIN));
     }
 
     @EventHandler
     public void onBlockInteract(PlayerInteractEvent event) {
+        final Player player = event.getPlayer();
         if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-            handleGenericLobbyEvent(event.getPlayer(), event, true);
+            handleGenericLobbyEvent(event.getPlayer(), event, player.hasPermission(APermissions.A_ADMIN));
         }
     }
 }
