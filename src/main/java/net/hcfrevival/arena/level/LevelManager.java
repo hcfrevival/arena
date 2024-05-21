@@ -189,7 +189,10 @@ public final class LevelManager extends ArenaManager {
      * @return Optional of DuelArenaInstance
      */
     public Optional<DuelArenaInstance> getAvailableDuelInstance() {
-        final DuelArena duelArena = (DuelArena) arenaRepository.stream().filter(a -> a instanceof DuelArena && a.hasAvailableInstances()).findFirst().orElse(null);
+        final DuelArena duelArena = (DuelArena) arenaRepository.stream().filter(a ->
+                a instanceof DuelArena
+                && !(a instanceof TeamArena)
+                && a.hasAvailableInstances()).findFirst().orElse(null);
 
         if (duelArena == null) {
             return Optional.empty();
