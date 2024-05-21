@@ -28,8 +28,8 @@ public final class ScoreboardUtil {
      * 63 --------------------
      * 62 Match Duration
      * 61 <blank></blank>
-     * 60 Player Ping 1 OR Team 1
-     * 59 Player Ping 2 OR Team 2
+     * 60 Player Ping 1 OR Team 1 OR Spectator Player 1
+     * 59 Player Ping 2 OR Team 2 OR Spectator Player 2
      * 58 Team 3
      * 57 Team 4
      * 56
@@ -38,7 +38,7 @@ public final class ScoreboardUtil {
      * 53
      * 52
      * 51
-     * 50
+     * 50 Spectators: 2
      * 49
      * 48
      * 47
@@ -188,6 +188,14 @@ public final class ScoreboardUtil {
             applyScoreboardTemplate(arenaPlayer.getScoreboard());
             applyCooldownsToScoreboard(arenaPlayer);
 
+            if (!session.getSpectators().isEmpty()) {
+                arenaPlayer.getScoreboard().setLine(51, ChatColor.RED + " " + ChatColor.RESET);
+                arenaPlayer.getScoreboard().setLine(50, ChatColor.GOLD + "Spectators" + ChatColor.YELLOW + ": " + session.getSpectators().size());
+            } else {
+                arenaPlayer.getScoreboard().removeLine(51);
+                arenaPlayer.getScoreboard().removeLine(50);
+            }
+
             arenaPlayer.getScoreboard().setLine(59, ChatColor.GOLD + session.getPlayerA().getUsername() + ChatColor.YELLOW + ": " + pingA + "ms");
             arenaPlayer.getScoreboard().setLine(60, ChatColor.GOLD + session.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + pingB + "ms");
             arenaPlayer.getScoreboard().setLine(61, ChatColor.RESET + "" + ChatColor.RESET);
@@ -213,18 +221,74 @@ public final class ScoreboardUtil {
                 cursor -= 1;
             }
 
+            if (!session.getSpectators().isEmpty()) {
+                arenaPlayer.getScoreboard().setLine(51, ChatColor.RED + " " + ChatColor.RESET);
+                arenaPlayer.getScoreboard().setLine(50, ChatColor.GOLD + "Spectators" + ChatColor.YELLOW + ": " + session.getSpectators().size());
+            } else {
+                arenaPlayer.getScoreboard().removeLine(51);
+                arenaPlayer.getScoreboard().removeLine(50);
+            }
+
             arenaPlayer.getScoreboard().setLine(61, ChatColor.RESET + "" + ChatColor.RESET);
             arenaPlayer.getScoreboard().setLine(62, ChatColor.GOLD + "Match Duration" + ChatColor.YELLOW + ": " + sessionDuration);
         }));
     }
 
     public static void sendSpectatorScoreboard(ArenaPlugin plugin, Player player, ISession session) {
-        if (session instanceof final DuelSession duelSession) {
+        PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+        String sessionDuration = Time.convertToHHMMSS(session.getDuration());
 
-        }
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            applyScoreboardTemplate(arenaPlayer.getScoreboard());
 
-        else if (session instanceof final TeamSession teamSession) {
+            arenaPlayer.getScoreboard().setLine(61, ChatColor.RESET + "" + ChatColor.RESET);
+            arenaPlayer.getScoreboard().setLine(62, ChatColor.GOLD + "Match Duration" + ChatColor.YELLOW + ": " + sessionDuration);
 
-        }
+            if (!session.getSpectators().isEmpty()) {
+                arenaPlayer.getScoreboard().setLine(51, ChatColor.RED + " " + ChatColor.RESET);
+                arenaPlayer.getScoreboard().setLine(50, ChatColor.GOLD + "Spectators" + ChatColor.YELLOW + ": " + session.getSpectators().size());
+            } else {
+                arenaPlayer.getScoreboard().removeLine(51);
+                arenaPlayer.getScoreboard().removeLine(50);
+            }
+
+            if (session instanceof final DuelSession duelSession) {
+                duelSession.getPlayerA().getPlayer().ifPresent(playerA -> {
+                    String health = String.format("%.1f", (playerA.getHealth() / 2));
+                    ChatColor healthColor = ChatColor.GREEN;
+
+                    if (playerA.getHealth() <= 5.0) {
+                        healthColor = ChatColor.RED;
+                    } else if (playerA.getHealth() <= 10.0) {
+                        healthColor = ChatColor.YELLOW;
+                    }
+
+                    arenaPlayer.getScoreboard().setLine(59, ChatColor.GOLD + duelSession.getPlayerA().getUsername() + ChatColor.YELLOW + ": " + healthColor + health + " ♥");
+                });
+
+                duelSession.getPlayerB().getPlayer().ifPresent(playerB -> {
+                    String health = String.format("%.1f", (playerB.getHealth() / 2));
+                    ChatColor healthColor = ChatColor.GREEN;
+
+                    if (playerB.getHealth() <= 5.0) {
+                        healthColor = ChatColor.RED;
+                    } else if (playerB.getHealth() <= 10.0) {
+                        healthColor = ChatColor.YELLOW;
+                    }
+
+                    arenaPlayer.getScoreboard().setLine(60, ChatColor.GOLD + duelSession.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + healthColor + health + " ♥");
+                });
+            }
+
+            else if (session instanceof final TeamSession teamSession) {
+                int cursor = 59;
+
+                for (Team team : teamSession.getTeams()) {
+                    int alive = team.getMembersByState(EPlayerState.INGAME).size();
+                    arenaPlayer.getScoreboard().setLine(cursor, ChatColor.GOLD + team.getDisplayName() + ChatColor.YELLOW + ": " + alive + " Alive");
+                    cursor -= 1;
+                }
+            }
+        });
     }
 }
