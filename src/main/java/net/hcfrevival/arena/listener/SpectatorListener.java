@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.level.IArenaInstance;
+import net.hcfrevival.arena.player.PlayerManager;
+import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.SessionManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Set;
 import java.util.UUID;
@@ -27,6 +30,17 @@ public final class SpectatorListener implements Listener {
     public SpectatorListener(ArenaPlugin plugin) {
         this.plugin = plugin;
         this.recentlyDied = Sets.newConcurrentHashSet();
+    }
+
+    @EventHandler
+    public void onDisconnect(PlayerQuitEvent event) {
+        final Player player = event.getPlayer();
+
+        ((PlayerManager)plugin.getManagers().get(PlayerManager.class)).getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE) || arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE_DEAD)) {
+                ((SessionManager)plugin.getManagers().get(SessionManager.class)).getSession(player).ifPresent(session -> session.stopSpectating(arenaPlayer));
+            }
+        });
     }
 
     @EventHandler
