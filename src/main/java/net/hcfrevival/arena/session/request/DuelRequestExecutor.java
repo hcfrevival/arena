@@ -9,6 +9,7 @@ import net.hcfrevival.arena.menu.KitSelectMenu;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.session.IDuelRequest;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
@@ -112,6 +113,8 @@ public class DuelRequestExecutor {
 
     public <T> void accept(IDuelRequest<T> request, Promise promise) {
         if (request instanceof final PlayerDuelRequest playerRequest) {
+            QueueManager queueManager = (QueueManager) manager.getPlugin().getManagers().get(QueueManager.class);
+
             if (!playerRequest.getReceiver().isInLobby()) {
                 promise.reject("Receiving player is not in the lobby");
                 return;
@@ -121,6 +124,12 @@ public class DuelRequestExecutor {
                 promise.reject("Sender player is not in the lobby");
                 return;
             }
+
+            Player senderPlayer = playerRequest.getSender().getPlayer().orElseThrow(NullPointerException::new);
+            Player receiverPlayer = playerRequest.getReceiver().getPlayer().orElseThrow(NullPointerException::new);
+
+            queueManager.getQueue(senderPlayer).ifPresent(senderQueue -> queueManager.getQueueRepository().remove(senderQueue));
+            queueManager.getQueue(receiverPlayer).ifPresent(receiverQueue -> queueManager.getQueueRepository().remove(receiverQueue));
 
             Optional<DuelSession> sessionAttempt = manager.getSessionManager().createDuelSession(
                     request.getGamerule(),
