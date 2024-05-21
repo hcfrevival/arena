@@ -122,7 +122,7 @@ public final class KitEditorMenu implements IMenu {
                     KitFilterUtil.isValid(Arrays.asList(player.getInventory().getContents()), gamerule, new Promise() {
                         @Override
                         public void resolve() {
-                            player.sendMessage(Component.text("Your kit passed ranked played validation"));
+                            player.sendMessage(Component.text("Your kit passed ranked play validation"));
                         }
 
                         @Override
