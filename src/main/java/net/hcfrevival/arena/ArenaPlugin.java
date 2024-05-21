@@ -27,8 +27,10 @@ import net.hcfrevival.arena.timer.TimerManager;
 import org.bukkit.NamespacedKey;
 
 import java.util.Map;
+import java.util.Random;
 
 public final class ArenaPlugin extends AresPlugin {
+    public static final Random RANDOM = new Random();
     public static ArenaPlugin instance;
 
     @Getter public final NamespacedKey namespacedKey = new NamespacedKey(this, "arena");
