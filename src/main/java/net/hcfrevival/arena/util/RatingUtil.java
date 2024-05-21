@@ -3,12 +3,13 @@ package net.hcfrevival.arena.util;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
 
 public final class RatingUtil {
-    private static final int BASE_K = 20;
+    private static final int BASE_K = 15;
     private static final double ALPHA = 0.2;
-    private static final double BETA = 0.4;
-    private static final double GAMMA = 0.4;
+    private static final double BETA = 0.3;
+    private static final double GAMMA = 0.3;
     private static final double DELTA = 0.2;
     private static final double MIN_LOSS = 5;
+    private static final double MAX_LOSS = 30;
 
     private static double calculateDynamicK(double baseK, double sprintResetAccuracy1, double sprintResetAccuracy2,
                                      double totalHits1, double totalHits2, double totalDamage1, double totalDamage2,
