@@ -16,6 +16,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -97,6 +98,20 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
         final Player player = event.getPlayer();
         if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
             handleGenericLobbyEvent(event.getPlayer(), event, player.hasPermission(APermissions.A_ADMIN));
+        }
+    }
+
+    @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        if (event.getEntity() instanceof final Player player) {
+            PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+            playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+                if (arenaPlayer.isInLobby()) {
+                    event.setFoodLevel(20);
+                    event.setCancelled(true);
+                }
+            });
         }
     }
 }
