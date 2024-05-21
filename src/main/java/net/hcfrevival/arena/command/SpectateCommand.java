@@ -47,7 +47,7 @@ public final class SpectateCommand extends BaseCommand {
     @Description("Stop spectating a match")
     public void onStopSpectating(Player player) {
         PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
-        SessionManager sessionManager = (SessionManager) plugin.getManagers().get(PlayerManager.class);
+        SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
 
         playerManager.getPlayer(player.getUniqueId()).ifPresentOrElse(arenaPlayer -> {
             if (!arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE) && !arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE_DEAD)) {
