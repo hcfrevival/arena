@@ -118,4 +118,10 @@ public final class Team {
         getFullMembers().forEach(member -> arenaPlayer.getPlayer().ifPresent(member::removeFriendly));
         members.remove(arenaPlayer);
     }
+
+    public void disband() {
+        getFullMembers().forEach(ArenaPlayer::clearFriendlies);
+        setLeader(null);
+        getMembers().clear();
+    }
 }

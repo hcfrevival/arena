@@ -23,20 +23,26 @@ public final class TeamListener implements Listener {
         PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
         TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
 
-        teamManager.getTeam(player.getUniqueId()).ifPresent(team -> {
+        teamManager.getTeam(player).ifPresent(team -> {
+            plugin.getAresLogger().info("Found team");
+            playerManager.getPlayer(player.getUniqueId()).ifPresent(team::removeMember);
+
             if (team.getLeader().getUniqueId().equals(player.getUniqueId())) {
+                plugin.getAresLogger().info("Found leader");
                 team.getNewLeader().ifPresentOrElse(newLeader -> {
                     team.setLeader(newLeader);
 
                     team.sendMessage(Component.text(newLeader.getUsername(), NamedTextColor.AQUA)
                             .appendSpace().append(Component.text("has been appointed as the new team leader", NamedTextColor.GRAY)));
-                }, () -> teamManager.getTeamRepository().remove(team));
+                    plugin.getAresLogger().info("Reassigned leader to " + newLeader.getUsername());
+                }, () -> {
+                    plugin.getAresLogger().info("Team disbanded");
+                    team.sendMessage(Component.text("Team disbanded", NamedTextColor.YELLOW));
+                    team.disband();
+                    teamManager.getTeamRepository().remove(team);
+                });
             }
-
-            playerManager.getPlayer(player.getUniqueId()).ifPresent(team::removeMember);
         });
-
-        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> teamManager.getTeam(player).ifPresent(team -> team.removeMember(arenaPlayer)));
     }
 
     @EventHandler
