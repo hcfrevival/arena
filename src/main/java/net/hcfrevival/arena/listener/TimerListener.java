@@ -46,7 +46,10 @@ public record TimerListener(@Getter ArenaPlugin plugin) implements Listener {
                 return;
             }
 
-            arenaPlayer.addTimer(new ArenaTimer(arenaPlayer, ETimerType.ENDERPEARL, 16)); // TODO: Make configurable
+            int cooldown = 16; // TODO: Make configurable
+
+            arenaPlayer.addTimer(new ArenaTimer(arenaPlayer, ETimerType.ENDERPEARL, cooldown));
+            player.setCooldown(Material.ENDER_PEARL, cooldown * 20);
         });
     }
 
@@ -66,7 +69,9 @@ public record TimerListener(@Getter ArenaPlugin plugin) implements Listener {
                     return;
                 }
 
-                arenaPlayer.addTimer(new ArenaTimer(arenaPlayer, ETimerType.CRAPPLE, 45));
+                int cooldown = 45; // TODO: Make configurable
+                arenaPlayer.addTimer(new ArenaTimer(arenaPlayer, ETimerType.CRAPPLE, cooldown));
+                player.setCooldown(Material.GOLDEN_APPLE, cooldown * 20);
             });
         }
     }
