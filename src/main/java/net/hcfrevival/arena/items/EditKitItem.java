@@ -32,7 +32,7 @@ public final class EditKitItem implements ICustomItem {
 
     @Override
     public Material getMaterial() {
-        return Material.DIAMOND_HELMET;
+        return Material.BOOK;
     }
 
     @Override
@@ -57,7 +57,9 @@ public final class EditKitItem implements ICustomItem {
 
     @Override
     public Map<Enchantment, Integer> getEnchantments() {
-        return Maps.newHashMap();
+        Map<Enchantment, Integer> res =Maps.newHashMap();
+        res.put(Enchantment.UNBREAKING, 1);
+        return res;
     }
 
     @Override
