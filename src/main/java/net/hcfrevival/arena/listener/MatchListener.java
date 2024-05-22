@@ -17,14 +17,12 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 
@@ -98,6 +96,21 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         handleBlockInteraction(event.getPlayer(), event.getBlock(), event);
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)
+                    || arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE)
+                    || arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE_DEAD)
+            ) {
+                event.setUseInteractedBlock(Event.Result.DENY);
+            }
+        });
     }
 
     @EventHandler (priority = EventPriority.LOWEST)
