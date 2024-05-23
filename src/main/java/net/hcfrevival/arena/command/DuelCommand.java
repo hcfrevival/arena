@@ -31,6 +31,17 @@ public final class DuelCommand extends BaseCommand {
     @Description("Duel a player")
     @Syntax("<player>")
     public void onDuelPlayer(Player player, String username) {
+        Player toDuel = Bukkit.getPlayer(username);
+        if (toDuel == null || !toDuel.isOnline()) {
+            player.sendMessage(Component.text("Player not found", NamedTextColor.RED));
+            return;
+        }
+
+        if (toDuel.getUniqueId().equals(player.getUniqueId())) {
+            player.sendMessage(Component.text("You can not duel yourself", NamedTextColor.RED));
+            return;
+        }
+
         SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
         sessionManager.getDuelRequestManager().getExecutor().promptDuelKitSelect(player, username, new Promise() {
             @Override
