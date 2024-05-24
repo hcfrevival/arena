@@ -7,6 +7,7 @@ import net.hcfrevival.arena.APermissions;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
+import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.util.LobbyUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -63,13 +64,20 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         final Player player = event.getPlayer();
         CustomItemService cis = (CustomItemService) plugin.getService(CustomItemService.class);
+        PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
 
-        if (cis != null && cis.getItem(event.getItemDrop().getItemStack()).isPresent()) {
-            handleGenericLobbyEvent(player, event, false);
+        if (player.hasPermission(APermissions.A_ADMIN)) {
             return;
         }
 
-        event.getItemDrop().remove();
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)) {
+                return;
+            }
+
+            event.setCancelled(true);
+            event.getItemDrop().remove();
+        });
     }
 
     @EventHandler
