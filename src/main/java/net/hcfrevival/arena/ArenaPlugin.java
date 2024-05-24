@@ -7,6 +7,7 @@ import gg.hcfactions.libs.base.connect.impl.mongo.Mongo;
 import gg.hcfactions.libs.base.connect.impl.redis.Redis;
 import gg.hcfactions.libs.bukkit.AresPlugin;
 import gg.hcfactions.libs.bukkit.services.impl.account.AccountService;
+import gg.hcfactions.libs.bukkit.services.impl.alts.AltService;
 import gg.hcfactions.libs.bukkit.services.impl.items.CustomItemService;
 import gg.hcfactions.libs.bukkit.services.impl.punishments.PunishmentService;
 import gg.hcfactions.libs.bukkit.services.impl.ranks.RankService;
@@ -96,6 +97,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerService(new PunishmentService(this, configuration.getMongoDatabaseName()));
         registerService(new RankService(this));
         registerService(new ReportService(this));
+        registerService(new AltService(this));
         // registerService(new RNService(this));
         startServices();
 

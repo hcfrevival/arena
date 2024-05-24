@@ -4,6 +4,8 @@ import gg.hcfactions.libs.acf.BaseCommand;
 import gg.hcfactions.libs.acf.annotation.*;
 import gg.hcfactions.libs.base.consumer.FailablePromise;
 import gg.hcfactions.libs.base.consumer.Promise;
+import gg.hcfactions.libs.bukkit.services.impl.account.AccountService;
+import gg.hcfactions.libs.bukkit.services.impl.account.model.AresAccount;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
@@ -31,6 +33,8 @@ public final class DuelCommand extends BaseCommand {
     @Description("Duel a player")
     @Syntax("<player>")
     public void onDuelPlayer(Player player, String username) {
+        AccountService acs = (AccountService) plugin.getService(AccountService.class);
+
         Player toDuel = Bukkit.getPlayer(username);
         if (toDuel == null || !toDuel.isOnline()) {
             player.sendMessage(Component.text("Player not found", NamedTextColor.RED));
@@ -40,6 +44,31 @@ public final class DuelCommand extends BaseCommand {
         if (toDuel.getUniqueId().equals(player.getUniqueId())) {
             player.sendMessage(Component.text("You can not duel yourself", NamedTextColor.RED));
             return;
+        }
+
+        if (acs != null) {
+            AresAccount senderAresAccount = acs.getCachedAccount(player.getUniqueId());
+            AresAccount receiverAresAccount = acs.getCachedAccount(toDuel.getUniqueId());
+
+            if (senderAresAccount != null && receiverAresAccount != null) {
+                // Receiver is ignoring the sender
+                if (receiverAresAccount.getSettings().isIgnoring(senderAresAccount.getUniqueId())) {
+                    player.sendMessage(Component.text(receiverAresAccount.getUsername() + " is not accepting duels", NamedTextColor.RED));
+                    return;
+                }
+
+                // Sender is ignoring the receiver
+                if (senderAresAccount.getSettings().isIgnoring(receiverAresAccount.getUniqueId())) {
+                    player.sendMessage(Component.text("You can not duel this player because you are ignoring them", NamedTextColor.RED));
+                    return;
+                }
+
+                // Receiver has duel requests disabled
+                if (!receiverAresAccount.getSettings().isEnabled(AresAccount.Settings.SettingValue.ALLOW_DUEL_REQUESTS)) {
+                    player.sendMessage(Component.text(receiverAresAccount.getUsername() + " is not accepting duels", NamedTextColor.RED));
+                    return;
+                }
+            }
         }
 
         SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
