@@ -31,7 +31,6 @@ public record StatsListener(@Getter ArenaPlugin plugin) implements Listener {
 
         playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
             arenaPlayer.getStatHolder().addSprintResetHit();
-            arenaPlayer.getStatHolder().addTotalHits();
         });
     }
 
