@@ -2,6 +2,7 @@ package net.hcfrevival.arena.session;
 
 import gg.hcfactions.libs.base.util.Time;
 import gg.hcfactions.libs.bukkit.utils.Players;
+import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.IArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
@@ -19,6 +20,11 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface ISession {
+    /**
+     * @return Arena Plugin instance
+     */
+    ArenaPlugin getPlugin();
+
     /**
      * @return Session ID
      */
@@ -151,8 +157,10 @@ public interface ISession {
         player.getPlayer().ifPresent(bukkitPlayer -> {
             player.setCurrentState(EPlayerState.LOBBY);
 
-            // TODO: Teleport to spawn
+
             bukkitPlayer.setGameMode(GameMode.SURVIVAL);
+            bukkitPlayer.teleport(getPlugin().getConfiguration().getSpawnLocation().getBukkitLocation());
+
             Players.resetHealth(bukkitPlayer);
 
             getSpectators().remove(player);
