@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
-import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.SessionManager;
 import net.kyori.adventure.text.Component;
@@ -22,6 +21,7 @@ public final class SpectateCommand extends BaseCommand {
     @Default
     @Description("Spectate a player")
     @Syntax("<player>")
+    @CommandCompletion("@players")
     public void onSpectate(Player player, String username) {
         PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
         SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);

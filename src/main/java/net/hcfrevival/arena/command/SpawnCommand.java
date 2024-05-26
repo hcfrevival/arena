@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 
 @AllArgsConstructor
 @CommandAlias("spawn")
-public class SpawnCommand extends BaseCommand {
+public final class SpawnCommand extends BaseCommand {
     @Getter public final ArenaPlugin plugin;
 
     @Default

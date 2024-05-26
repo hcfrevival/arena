@@ -25,6 +25,7 @@ import net.hcfrevival.arena.ranked.RankedManager;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.timer.TimerManager;
+import net.hcfrevival.revnet.RNService;
 import org.bukkit.NamespacedKey;
 
 import java.util.Map;
@@ -98,7 +99,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerService(new RankService(this));
         registerService(new ReportService(this));
         registerService(new AltService(this));
-        // registerService(new RNService(this));
+        registerService(new RNService(this));
         startServices();
 
         // managers

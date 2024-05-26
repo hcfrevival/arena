@@ -168,10 +168,10 @@ public final class SessionManager extends ArenaManager {
         final DuelArenaInstance instance = instQuery.get();
 
         if (isRanked) {
-            return Optional.of(new RankedDuelSession(gamerule, instance, playerA, playerB));
+            return Optional.of(new RankedDuelSession(plugin, gamerule, instance, playerA, playerB));
         }
 
-        return Optional.of(new DuelSession(gamerule, instance, playerA, playerB));
+        return Optional.of(new DuelSession(plugin, gamerule, instance, playerA, playerB));
     }
 
     /**
@@ -189,7 +189,7 @@ public final class SessionManager extends ArenaManager {
         }
 
         final TeamArenaInstance instance = instQuery.get();
-        final TeamSession session = new TeamSession(gamerule, instance, teams);
+        final TeamSession session = new TeamSession(plugin, gamerule, instance, teams);
 
         return Optional.of(session);
     }

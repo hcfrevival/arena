@@ -7,6 +7,7 @@ import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import gg.hcfactions.libs.bukkit.utils.Players;
 import lombok.Getter;
 import lombok.Setter;
+import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.impl.DuelArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
@@ -19,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class DuelSession implements ISession {
+    @Getter public final ArenaPlugin plugin;
     @Getter public final UUID uniqueId;
     @Getter public final DuelArenaInstance arena;
     @Getter public final EGamerule gamerule;
@@ -31,7 +33,14 @@ public class DuelSession implements ISession {
     @Getter @Setter public long endTimestamp;
     @Getter @Setter public long expire;
 
-    public DuelSession(EGamerule gamerule, DuelArenaInstance arena, ArenaPlayer a, ArenaPlayer b) {
+    public DuelSession(
+            ArenaPlugin plugin,
+            EGamerule gamerule,
+            DuelArenaInstance arena,
+            ArenaPlayer a,
+            ArenaPlayer b
+    ) {
+        this.plugin = plugin;
         this.uniqueId = UUID.randomUUID();
         this.arena = arena;
         this.gamerule = gamerule;

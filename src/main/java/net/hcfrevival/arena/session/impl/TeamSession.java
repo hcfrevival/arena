@@ -7,6 +7,7 @@ import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import gg.hcfactions.libs.bukkit.utils.Players;
 import lombok.Getter;
 import lombok.Setter;
+import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.level.impl.TeamArenaInstance;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
@@ -25,6 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class TeamSession implements ISession {
+    @Getter public final ArenaPlugin plugin;
     @Getter public final UUID uniqueId;
     @Getter public final TeamArenaInstance arena;
     @Getter public final EGamerule gamerule;
@@ -36,7 +38,8 @@ public class TeamSession implements ISession {
     @Getter @Setter public long expire;
     @Getter @Setter public boolean active;
 
-    public TeamSession(EGamerule gamerule, TeamArenaInstance arena, List<Team> teams) {
+    public TeamSession(ArenaPlugin plugin, EGamerule gamerule, TeamArenaInstance arena, List<Team> teams) {
+        this.plugin = plugin;
         this.uniqueId = UUID.randomUUID();
         this.arena = arena;
         this.gamerule = gamerule;
