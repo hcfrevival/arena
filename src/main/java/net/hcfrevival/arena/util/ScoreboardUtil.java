@@ -254,6 +254,7 @@ public final class ScoreboardUtil {
 
             if (session instanceof final DuelSession duelSession) {
                 duelSession.getPlayerA().getPlayer().ifPresent(playerA -> {
+                    int healthPotionCount = PlayerUtil.countHealthPotions(playerA.getInventory());
                     String health = String.format("%.1f", (playerA.getHealth() / 2));
                     ChatColor healthColor = ChatColor.GREEN;
 
@@ -263,10 +264,12 @@ public final class ScoreboardUtil {
                         healthColor = ChatColor.YELLOW;
                     }
 
-                    arenaPlayer.getScoreboard().setLine(59, ChatColor.GOLD + duelSession.getPlayerA().getUsername() + ChatColor.YELLOW + ": " + healthColor + health + " ♥");
+                    arenaPlayer.getScoreboard().setLine(59, ChatColor.GOLD + duelSession.getPlayerA().getUsername() + ChatColor.YELLOW + ": "
+                            + healthColor + health + " ♥" + ChatColor.RESET + " " + ChatColor.GRAY + "(" + ChatColor.WHITE + healthPotionCount + " Potions" + ChatColor.GRAY + ")");
                 });
 
                 duelSession.getPlayerB().getPlayer().ifPresent(playerB -> {
+                    int healthPotionCount = PlayerUtil.countHealthPotions(playerB.getInventory());
                     String health = String.format("%.1f", (playerB.getHealth() / 2));
                     ChatColor healthColor = ChatColor.GREEN;
 
@@ -276,7 +279,8 @@ public final class ScoreboardUtil {
                         healthColor = ChatColor.YELLOW;
                     }
 
-                    arenaPlayer.getScoreboard().setLine(60, ChatColor.GOLD + duelSession.getPlayerB().getUsername() + ChatColor.YELLOW + ": " + healthColor + health + " ♥");
+                    arenaPlayer.getScoreboard().setLine(60, ChatColor.GOLD + duelSession.getPlayerB().getUsername() + ChatColor.YELLOW + ": "
+                            + healthColor + health + " ♥" + ChatColor.RESET + " " + ChatColor.GRAY + "(" + ChatColor.WHITE + healthPotionCount + " Potions" + ChatColor.GRAY + ")");
                 });
             }
 
