@@ -1,6 +1,7 @@
 package net.hcfrevival.arena.listener;
 
 import gg.hcfactions.libs.base.util.Strings;
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
@@ -49,7 +50,9 @@ public record TimerListener(@Getter ArenaPlugin plugin) implements Listener {
             int cooldown = 16; // TODO: Make configurable
 
             arenaPlayer.addTimer(new ArenaTimer(arenaPlayer, ETimerType.ENDERPEARL, cooldown));
-            player.setCooldown(Material.ENDER_PEARL, cooldown * 20);
+
+            // Needs to be set 1 tick later to prevent conflicts w/ vanilla gameplay
+            new Scheduler(plugin).sync(() -> player.setCooldown(Material.ENDER_PEARL, cooldown * 20)).delay(1L).run();
         });
     }
 
