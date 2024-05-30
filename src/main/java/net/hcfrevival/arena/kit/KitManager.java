@@ -106,7 +106,14 @@ public final class KitManager extends ArenaManager {
         final YamlConfiguration conf = YamlConfiguration.loadConfiguration(file);
 
         for (String gameruleName : Objects.requireNonNull(conf.getConfigurationSection("data")).getKeys(false)) {
-            final EGamerule gamerule = EGamerule.valueOf(gameruleName);
+            final EGamerule gamerule;
+            try {
+                gamerule = EGamerule.valueOf(gameruleName);
+            } catch (IllegalArgumentException e) {
+                plugin.getAresLogger().error("Invalid gamerule: {}", gameruleName, e);
+                continue;
+            }
+
             final List<ItemStack> contents = (List<ItemStack>)conf.getList("data." + gameruleName + ".contents");
             final List<ItemStack> armor = (List<ItemStack>)conf.getList("data." + gameruleName + ".armor");
             final PlayerKit playerKit = new PlayerKit(player.getUniqueId(), gamerule, contents, armor);

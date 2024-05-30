@@ -25,6 +25,8 @@ import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
 import net.hcfrevival.arena.team.impl.Team;
 import net.hcfrevival.arena.util.ArenaUtil;
 import net.hcfrevival.arena.util.LobbyUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -270,7 +272,12 @@ public final class SessionManager extends ArenaManager {
             }
 
             final ArenaPlayer winner = winnerQuery.get();
-            session.saveStats(winner);
+
+            try {
+                session.saveStats(winner);
+            } catch (NullPointerException e) {
+                winner.getPlayer().ifPresent(winnerPlayer -> winnerPlayer.sendMessage(Component.text("Failed to save your stats for this match", NamedTextColor.RED)));
+            }
 
             final ArenaPlayer loser = loserQuery.get();
 

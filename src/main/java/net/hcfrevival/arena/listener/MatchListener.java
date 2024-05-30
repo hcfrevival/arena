@@ -3,7 +3,6 @@ package net.hcfrevival.arena.listener;
 import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import gg.hcfactions.libs.bukkit.utils.Worlds;
 import lombok.Getter;
-import net.hcfrevival.arena.APermissions;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.event.DuelMatchFinishEvent;
@@ -13,6 +12,8 @@ import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -51,7 +52,12 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
 
             playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
                 arenaPlayer.getStatHolder().storeFinalAttributes(player);
-                session.saveStats(arenaPlayer);
+
+                try {
+                    session.saveStats(arenaPlayer);
+                } catch (NullPointerException e) {
+                    player.sendMessage(Component.text("Failed to save your stats for this match", NamedTextColor.RED));
+                }
             });
 
             if (session instanceof final DuelSession duelSession) {
