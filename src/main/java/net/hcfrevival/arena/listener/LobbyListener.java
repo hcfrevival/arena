@@ -12,6 +12,7 @@ import net.hcfrevival.arena.util.LobbyUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -22,6 +23,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.Optional;
 
@@ -58,6 +60,26 @@ public record LobbyListener(@Getter ArenaPlugin plugin) implements Listener {
         }
 
         handleGenericLobbyEvent(player, event, true);
+    }
+
+    @EventHandler (priority = EventPriority.HIGHEST)
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
+
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.ENDER_PEARL)) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+        playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (!arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)) {
+                event.setCancelled(true);
+            }
+        });
     }
 
     @EventHandler
