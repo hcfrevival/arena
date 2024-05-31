@@ -1,5 +1,6 @@
 package net.hcfrevival.arena.gamerule;
 
+import com.google.common.collect.Lists;
 import gg.hcfactions.libs.bukkit.builder.impl.ItemBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,6 +34,29 @@ public enum EGamerule {
         final ItemStack item = new ItemBuilder()
                 .setMaterial(rule.getIcon())
                 .setName(rule.getDisplayNameComponent())
+                .addFlag(ItemFlag.HIDE_ATTRIBUTES)
+                .addFlag(ItemFlag.HIDE_ADDITIONAL_TOOLTIP)
+                .build();
+
+        if (rule.equals(NODEBUFF) || rule.equals(DEBUFF)) {
+            final PotionMeta meta = (PotionMeta) item.getItemMeta();
+            final Color potionColor = (rule.equals(NODEBUFF) ? PotionType.HEALING.getEffectType().getColor() : PotionType.POISON.getEffectType().getColor());
+
+            if (meta != null) {
+                meta.setColor(potionColor);
+                meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP, ItemFlag.HIDE_ATTRIBUTES);
+                item.setItemMeta(meta);
+            }
+        }
+
+        return item;
+    }
+
+    public static ItemStack getIcon(EGamerule rule, int inQueue) {
+        final ItemStack item = new ItemBuilder()
+                .setMaterial(rule.getIcon())
+                .setName(rule.getDisplayNameComponent())
+                .addLoreComponents(Lists.newArrayList(Component.text("In-Queue:", NamedTextColor.WHITE).appendSpace().append(Component.text(inQueue, NamedTextColor.AQUA))))
                 .addFlag(ItemFlag.HIDE_ATTRIBUTES)
                 .addFlag(ItemFlag.HIDE_ADDITIONAL_TOOLTIP)
                 .build();
