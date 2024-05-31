@@ -85,7 +85,7 @@ public final class RankedQueueItem implements ICustomItem {
     @Override
     public Runnable getRightClick(Player who) {
         return () -> {
-            final KitSelectMenu menu = new KitSelectMenu(plugin, who, new FailablePromise<>() {
+            final KitSelectMenu menu = new KitSelectMenu(plugin, who, KitSelectMenu.EQueueDataType.RANKED, new FailablePromise<>() {
                 @Override
                 public void resolve(EGamerule rule) {
                     final QueueManager queueManager = (QueueManager)plugin.getManagers().get(QueueManager.class);

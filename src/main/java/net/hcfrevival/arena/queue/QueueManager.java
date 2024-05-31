@@ -7,6 +7,7 @@ import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.ArenaMessage;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.queue.impl.IArenaQueue;
 import net.hcfrevival.arena.queue.impl.RankedQueueEntry;
 import net.hcfrevival.arena.queue.impl.UnrankedQueueEntry;
@@ -62,6 +63,18 @@ public final class QueueManager extends ArenaManager {
 
     public Optional<IArenaQueue> getQueue(Player player) {
         return queueRepository.stream().filter(queue -> queue.getUniqueId().equals(player.getUniqueId())).findFirst();
+    }
+
+    public List<UnrankedQueueEntry> getUnrankedQueues(EGamerule gamerule) {
+        final List<UnrankedQueueEntry> res = Lists.newArrayList();
+        queueRepository.stream().filter(queue -> queue instanceof UnrankedQueueEntry && queue.getGamerule().equals(gamerule)).forEach(unrankedQueue -> res.add((UnrankedQueueEntry) unrankedQueue));
+        return res;
+    }
+
+    public List<RankedQueueEntry> getRankedQueues(EGamerule gamerule) {
+        final List<RankedQueueEntry> res = Lists.newArrayList();
+        queueRepository.stream().filter(queue -> queue instanceof RankedQueueEntry && queue.getGamerule().equals(gamerule)).forEach(rankedQueue -> res.add((RankedQueueEntry) rankedQueue));
+        return res;
     }
 
     public List<RankedQueueEntry> getRankedQueues() {

@@ -84,7 +84,7 @@ public final class UnrankedQueueItem implements ICustomItem {
     @Override
     public Runnable getRightClick(Player who) {
         return () -> {
-            final KitSelectMenu menu = new KitSelectMenu(plugin, who, new FailablePromise<>() {
+            final KitSelectMenu menu = new KitSelectMenu(plugin, who, KitSelectMenu.EQueueDataType.UNRANKED, new FailablePromise<>() {
                 @Override
                 public void resolve(EGamerule rule) {
                     final QueueManager queueManager = (QueueManager)plugin.getManagers().get(QueueManager.class);

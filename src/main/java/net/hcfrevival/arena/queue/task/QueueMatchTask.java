@@ -24,12 +24,17 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
         final List<IArenaQueue> toRemove = Lists.newArrayList();
 
         for (IArenaQueue queueEntry : manager.getQueueRepository()) {
+            if (queueEntry.isLocked()) {
+                continue;
+            }
+
             if (queueEntry instanceof final RankedQueueEntry rankedQueueEntry) {
                 final Optional<RankedQueueEntry> foundMatch = manager.getRankedQueues().stream().filter(otherQueue ->
                         !otherQueue.getUniqueId().equals(queueEntry.getUniqueId())
                                 && otherQueue.getGamerule().equals(rankedQueueEntry.getGamerule())
                                 && rankedQueueEntry.isMatch(otherQueue.getRating())
                                 && otherQueue.isMatch(rankedQueueEntry.getRating())
+                                && !otherQueue.isLocked()
                                 && !toRemove.contains(otherQueue)).findAny();
 
                 // No match, expand search
@@ -47,6 +52,9 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
                 }
 
                 final Optional<RankedDuelSession> newSession = sessionManager.createRankedDuelSession(queueEntry.getGamerule(), playerQueryA.get(), playerQueryB.get());
+
+                queueEntry.setLocked(true);
+                foundMatch.get().setLocked(true);
 
                 if (newSession.isEmpty()) {
                     manager.getPlugin().getAresLogger().error("failed to generate duel session during queue processing");
@@ -68,6 +76,7 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
                 final Optional<UnrankedQueueEntry> foundMatch = manager.getUnrankedQueues().stream().filter(otherQueue ->
                         !otherQueue.getUniqueId().equals(unrankedQueueEntry.getUniqueId())
                                 && otherQueue.getGamerule().equals(unrankedQueueEntry.getGamerule())
+                                && !otherQueue.isLocked()
                                 && !toRemove.contains(otherQueue)).findAny();
 
                 if (foundMatch.isEmpty()) {
@@ -86,6 +95,9 @@ public record QueueMatchTask(@Getter QueueManager manager) implements Runnable {
                 toRemove.add(foundMatch.get());
 
                 final Optional<DuelSession> newSession = sessionManager.createDuelSession(queueEntry.getGamerule(), playerQueryA.get(), playerQueryB.get(), false);
+
+                queueEntry.setLocked(true);
+                foundMatch.get().setLocked(true);
 
                 if (newSession.isEmpty()) {
                     manager.getPlugin().getAresLogger().error("failed to generate duel session during queue processing");

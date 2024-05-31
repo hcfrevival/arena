@@ -6,17 +6,20 @@ import net.hcfrevival.arena.gamerule.EGamerule;
 
 import java.util.UUID;
 
+@Getter
 public class RankedQueueEntry implements IArenaQueue {
-    @Getter public final UUID uniqueId;
-    @Getter public final EGamerule gamerule;
-    @Getter public final int rating;
-    @Getter @Setter public int range;
+    public final UUID uniqueId;
+    public final EGamerule gamerule;
+    public final int rating;
+    @Setter public int range;
+    @Setter public boolean locked;
 
     public RankedQueueEntry(UUID uniqueId, EGamerule gamerule, int rating) {
         this.uniqueId = uniqueId;
         this.gamerule = gamerule;
         this.rating = rating;
         this.range = 50;
+        this.locked = false;
     }
 
     public int getMinRating() {

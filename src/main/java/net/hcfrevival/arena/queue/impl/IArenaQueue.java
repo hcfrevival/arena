@@ -7,4 +7,6 @@ import java.util.UUID;
 public interface IArenaQueue {
     UUID getUniqueId();
     EGamerule getGamerule();
+    boolean isLocked();
+    void setLocked(boolean b);
 }
