@@ -31,10 +31,10 @@ public final class TeamListener implements Listener {
                 plugin.getAresLogger().info("Found leader");
                 team.getNewLeader().ifPresentOrElse(newLeader -> {
                     team.setLeader(newLeader);
+                    team.getMembers().remove(newLeader);
 
                     team.sendMessage(Component.text(newLeader.getUsername(), NamedTextColor.AQUA)
                             .appendSpace().append(Component.text("has been appointed as the new team leader", NamedTextColor.GRAY)));
-                    plugin.getAresLogger().info("Reassigned leader to " + newLeader.getUsername());
                 }, () -> {
                     plugin.getAresLogger().info("Team disbanded");
                     team.sendMessage(Component.text("Team disbanded", NamedTextColor.YELLOW));
