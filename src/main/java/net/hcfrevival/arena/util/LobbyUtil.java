@@ -57,6 +57,7 @@ public final class LobbyUtil {
 
     public static void givePartyMemberItems(ArenaPlugin plugin, Player player) {
         CustomItemService cis = (CustomItemService) plugin.getService(CustomItemService.class);
-        cis.getItem(LeaveTeamItem.class).ifPresent(leaveTeamItem -> player.getInventory().setItem(4, leaveTeamItem.getItem()));
+        cis.getItem(LeaveTeamItem.class).ifPresent(leaveTeamItem -> player.getInventory().setItem(8, leaveTeamItem.getItem()));
+        cis.getItem(TeamListItem.class).ifPresent(teamListItem -> player.getInventory().setItem(4, teamListItem.getItem()));
     }
 }
