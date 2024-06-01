@@ -46,7 +46,7 @@ public final class MatchCommand extends BaseCommand {
             return;
         }
 
-        sessionManager.getSession(otherPlayer).ifPresentOrElse(sessionManager::endSession, () ->
+        sessionManager.getSession(otherPlayer).ifPresentOrElse((session) -> sessionManager.endSession(session, true), () ->
                 player.sendMessage(Component.text("Session not found", NamedTextColor.RED)));
     }
 

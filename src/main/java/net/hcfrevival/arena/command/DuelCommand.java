@@ -8,8 +8,9 @@ import gg.hcfactions.libs.bukkit.services.impl.account.model.AresAccount;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
-import net.hcfrevival.arena.session.IDuelRequest;
 import net.hcfrevival.arena.session.SessionManager;
+import net.hcfrevival.arena.session.request.impl.PlayerDuelRequest;
+import net.hcfrevival.arena.session.request.impl.TeamDuelRequest;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.team.impl.Team;
 import net.kyori.adventure.text.Component;
@@ -91,21 +92,31 @@ public final class DuelCommand extends BaseCommand {
             return;
         }
 
-        TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
-        Optional<Team> teamQuery = teamManager.getTeam(player.getUniqueId());
-
-        if (teamQuery.isEmpty()) {
-            player.sendMessage(Component.text("Team not found", NamedTextColor.RED));
-            return;
-        }
-
-        Team team = teamQuery.get();
-        if (!team.getLeader().getUniqueId().equals(player.getUniqueId())) {
-            player.sendMessage(Component.text("You are not the team leader", NamedTextColor.RED));
-            return;
-        }
-
         SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
-        sessionManager.getDuelRequestManager().getRequest(uuid).ifPresentOrElse(IDuelRequest::accept, () -> player.sendMessage(Component.text("Request not found", NamedTextColor.RED)));
+
+        sessionManager.getDuelRequestManager().getRequest(uuid).ifPresentOrElse((req) -> {
+            if (req instanceof TeamDuelRequest) {
+                TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
+                Optional<Team> teamQuery = teamManager.getTeam(player.getUniqueId());
+
+                if (teamQuery.isEmpty()) {
+                    player.sendMessage(Component.text("Team not found", NamedTextColor.RED));
+                    return;
+                }
+
+                Team team = teamQuery.get();
+                if (!team.getLeader().getUniqueId().equals(player.getUniqueId())) {
+                    player.sendMessage(Component.text("You are not the team leader", NamedTextColor.RED));
+                    return;
+                }
+
+                req.accept();
+                return;
+            }
+
+            if (req instanceof PlayerDuelRequest) {
+                req.accept();
+            }
+        }, () -> player.sendMessage(Component.text("Request not found", NamedTextColor.RED)));
     }
 }

@@ -64,7 +64,7 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
                 playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> arenaPlayer.setCurrentState(EPlayerState.SPECTATE_DEAD));
 
                 if (duelSession.hasWinner() || disconnect) {
-                    sessionManager.endSession(duelSession);
+                    sessionManager.endSession(duelSession, false);
                 }
             }
 
@@ -78,7 +78,7 @@ public record MatchListener(@Getter ArenaPlugin plugin) implements Listener {
                 playerManager.getPlayer(player.getUniqueId()).ifPresent(arenaPlayer -> arenaPlayer.setCurrentState(EPlayerState.SPECTATE_DEAD));
 
                 if (teamSession.hasWinner()) {
-                    sessionManager.endSession(teamSession);
+                    sessionManager.endSession(teamSession, false);
                 }
             }
         });

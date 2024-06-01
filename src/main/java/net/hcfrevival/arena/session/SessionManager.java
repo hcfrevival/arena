@@ -240,7 +240,7 @@ public final class SessionManager extends ArenaManager {
                 session.sendMessage(ArenaMessage.getArenaDetailMessage(session.getArena().getOwner()))).delay(10 * 20L).run();
     }
 
-    public void endSession(ISession session) {
+    public void endSession(ISession session, boolean force) {
         session.setEndTimestamp(Time.now());
         session.setActive(false);
 
@@ -263,44 +263,46 @@ public final class SessionManager extends ArenaManager {
 
         new Scheduler(plugin).sync(() -> session.getArena().setAvailable(true)).delay(5 * 20L).run();
 
-        if (session instanceof final DuelSession duelSession) {
-            final Optional<ArenaPlayer> winnerQuery = duelSession.getWinner();
-            final Optional<ArenaPlayer> loserQuery = duelSession.getLoser();
+        if (!force) {
+            if (session instanceof final DuelSession duelSession) {
+                final Optional<ArenaPlayer> winnerQuery = duelSession.getWinner();
+                final Optional<ArenaPlayer> loserQuery = duelSession.getLoser();
 
-            if (winnerQuery.isEmpty() || loserQuery.isEmpty()) {
-                duelSession.sendMessage(ChatColor.RED + "Failed to perform account lookup while generating after-match report.");
-                return;
+                if (winnerQuery.isEmpty() || loserQuery.isEmpty()) {
+                    duelSession.sendMessage(ChatColor.RED + "Failed to perform account lookup while generating after-match report.");
+                    return;
+                }
+
+                final ArenaPlayer winner = winnerQuery.get();
+
+                try {
+                    session.saveStats(winner);
+                } catch (NullPointerException e) {
+                    winner.getPlayer().ifPresent(winnerPlayer -> winnerPlayer.sendMessage(Component.text("Failed to save your stats for this match", NamedTextColor.RED)));
+                }
+
+                final ArenaPlayer loser = loserQuery.get();
+
+                final DuelMatchFinishEvent finishEvent = new DuelMatchFinishEvent(duelSession, winner, loser);
+                Bukkit.getPluginManager().callEvent(finishEvent);
             }
 
-            final ArenaPlayer winner = winnerQuery.get();
+            else if (session instanceof final TeamSession teamSession) {
+                final Optional<Team> winnerQuery = teamSession.getWinner();
 
-            try {
-                session.saveStats(winner);
-            } catch (NullPointerException e) {
-                winner.getPlayer().ifPresent(winnerPlayer -> winnerPlayer.sendMessage(Component.text("Failed to save your stats for this match", NamedTextColor.RED)));
+                if (winnerQuery.isEmpty()) {
+                    teamSession.sendMessage(ChatColor.RED + "Failed to perform winner lookup while generating after-match report.");
+                    return;
+                }
+
+                final Team winner = winnerQuery.get();
+                winner.getMembersByState(EPlayerState.INGAME).forEach(session::saveStats);
+
+                final List<Team> losers = teamSession.getTeams().stream().filter(t -> !t.getUniqueId().equals(winner.getUniqueId())).collect(Collectors.toList());
+                final TeamMatchFinishEvent finishEvent = new TeamMatchFinishEvent(teamSession, winner, losers);
+
+                Bukkit.getPluginManager().callEvent(finishEvent);
             }
-
-            final ArenaPlayer loser = loserQuery.get();
-
-            final DuelMatchFinishEvent finishEvent = new DuelMatchFinishEvent(duelSession, winner, loser);
-            Bukkit.getPluginManager().callEvent(finishEvent);
-        }
-
-        else if (session instanceof final TeamSession teamSession) {
-            final Optional<Team> winnerQuery = teamSession.getWinner();
-
-            if (winnerQuery.isEmpty()) {
-                teamSession.sendMessage(ChatColor.RED + "Failed to perform winner lookup while generating after-match report.");
-                return;
-            }
-
-            final Team winner = winnerQuery.get();
-            winner.getMembersByState(EPlayerState.INGAME).forEach(session::saveStats);
-
-            final List<Team> losers = teamSession.getTeams().stream().filter(t -> !t.getUniqueId().equals(winner.getUniqueId())).collect(Collectors.toList());
-            final TeamMatchFinishEvent finishEvent = new TeamMatchFinishEvent(teamSession, winner, losers);
-
-            Bukkit.getPluginManager().callEvent(finishEvent);
         }
 
         sessionRepository.remove(session);
