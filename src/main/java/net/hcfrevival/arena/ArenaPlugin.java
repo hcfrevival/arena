@@ -124,6 +124,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerListener(new LevelBuilderListener(this));
         registerListener(new TeamListener(this));
         registerListener(new RankedDataListener(this));
+        registerListener(new CosmeticListener(this));
         registerListener(new WorldListener());
     }
 
