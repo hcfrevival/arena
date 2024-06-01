@@ -9,6 +9,7 @@ import net.hcfrevival.arena.event.PlayerStateChangeEvent;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
 import net.hcfrevival.arena.timer.ETimerType;
 import net.hcfrevival.arena.timer.impl.ArenaTimer;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -44,9 +45,10 @@ public final class ArenaPlayer {
         final Scoreboard internal = scoreboard.getInternal();
         final Team friendly = internal.registerNewTeam("friendly");
 
-        friendly.setColor(ChatColor.GREEN);
+        friendly.color(NamedTextColor.GREEN);
         friendly.setCanSeeFriendlyInvisibles(true);
         friendly.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+        friendly.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
     }
 
     public boolean isInLobby() {
