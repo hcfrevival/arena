@@ -67,6 +67,7 @@ public record PlayerDataListener(@Getter ArenaPlugin plugin) implements Listener
         }
 
         if (newState.equals(EPlayerState.INGAME)) {
+            player.setGameMode(GameMode.SURVIVAL);
             Players.resetHealth(player);
         }
     }
