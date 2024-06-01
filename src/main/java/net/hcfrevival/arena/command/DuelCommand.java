@@ -95,9 +95,13 @@ public final class DuelCommand extends BaseCommand {
         SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
 
         sessionManager.getDuelRequestManager().getRequest(uuid).ifPresentOrElse((req) -> {
-            if (req instanceof TeamDuelRequest) {
+            if (req instanceof PlayerDuelRequest) {
+                req.accept();
+            }
+
+            else if (req instanceof TeamDuelRequest) {
                 TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
-                Optional<Team> teamQuery = teamManager.getTeam(player.getUniqueId());
+                Optional<Team> teamQuery = teamManager.getTeam(player);
 
                 if (teamQuery.isEmpty()) {
                     player.sendMessage(Component.text("Team not found", NamedTextColor.RED));
@@ -110,11 +114,6 @@ public final class DuelCommand extends BaseCommand {
                     return;
                 }
 
-                req.accept();
-                return;
-            }
-
-            if (req instanceof PlayerDuelRequest) {
                 req.accept();
             }
         }, () -> player.sendMessage(Component.text("Request not found", NamedTextColor.RED)));
