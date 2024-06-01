@@ -2,6 +2,7 @@ package net.hcfrevival.arena.listener;
 
 import com.google.common.collect.Sets;
 import gg.hcfactions.libs.bukkit.events.impl.PlayerBigMoveEvent;
+import gg.hcfactions.libs.bukkit.events.impl.PlayerDamagePlayerEvent;
 import gg.hcfactions.libs.bukkit.location.impl.PLocatable;
 import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.AllArgsConstructor;
@@ -72,6 +73,24 @@ public final class SpectatorListener implements Listener {
                     player.sendMessage(ChatColor.RED + "You have been teleported back to the Spectator Spawnpoint");
                 }).delay(1L).run();
             }
+        });
+    }
+
+    @EventHandler (priority = EventPriority.HIGHEST)
+    public void onPlayerDamagePlayer(PlayerDamagePlayerEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
+
+        Player attacker = event.getDamager();
+        PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+
+        playerManager.getPlayer(attacker.getUniqueId()).ifPresentOrElse(arenaPlayer -> {
+            if (!arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)) {
+                event.setCancelled(true);
+            }
+        }, () -> {
+            event.setCancelled(true);
         });
     }
 }
