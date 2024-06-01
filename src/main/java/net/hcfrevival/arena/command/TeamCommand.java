@@ -12,7 +12,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 @AllArgsConstructor
-@CommandAlias("team|t")
+@CommandAlias("team|t|party|p")
 public final class TeamCommand extends BaseCommand {
     @Getter public final ArenaPlugin plugin;
 

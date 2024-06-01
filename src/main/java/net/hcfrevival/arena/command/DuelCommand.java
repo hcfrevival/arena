@@ -2,16 +2,12 @@ package net.hcfrevival.arena.command;
 
 import gg.hcfactions.libs.acf.BaseCommand;
 import gg.hcfactions.libs.acf.annotation.*;
-import gg.hcfactions.libs.base.consumer.FailablePromise;
 import gg.hcfactions.libs.base.consumer.Promise;
 import gg.hcfactions.libs.bukkit.services.impl.account.AccountService;
 import gg.hcfactions.libs.bukkit.services.impl.account.model.AresAccount;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
-import net.hcfrevival.arena.gamerule.EGamerule;
-import net.hcfrevival.arena.menu.KitSelectMenu;
-import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.session.IDuelRequest;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.team.TeamManager;
@@ -97,7 +93,14 @@ public final class DuelCommand extends BaseCommand {
 
         TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
         Optional<Team> teamQuery = teamManager.getTeam(player.getUniqueId());
-        if (teamQuery.isPresent() && !teamQuery.get().getLeader().getUniqueId().equals(player.getUniqueId())) {
+
+        if (teamQuery.isEmpty()) {
+            player.sendMessage(Component.text("Team not found", NamedTextColor.RED));
+            return;
+        }
+
+        Team team = teamQuery.get();
+        if (!team.getLeader().getUniqueId().equals(player.getUniqueId())) {
             player.sendMessage(Component.text("You are not the team leader", NamedTextColor.RED));
             return;
         }

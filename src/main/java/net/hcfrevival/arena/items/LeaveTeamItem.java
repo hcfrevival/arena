@@ -52,6 +52,8 @@ public final class LeaveTeamItem implements ICustomItem {
             TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
             ArenaPlayer arenaPlayer = playerManager.getPlayer(who.getUniqueId()).orElseThrow(NullPointerException::new);
 
+            arenaPlayer.clearFriendlies();
+
             teamManager.getTeam(who).ifPresent(team -> {
                 team.removeMember(arenaPlayer);
                 LobbyUtil.giveLobbyItems(plugin, who);

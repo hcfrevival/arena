@@ -1,6 +1,7 @@
 package net.hcfrevival.arena.session.request;
 
 import com.google.common.collect.Sets;
+import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaManager;
 import net.hcfrevival.arena.session.IDuelRequest;
@@ -21,6 +22,8 @@ public final class DuelRequestManager extends ArenaManager {
         this.sessionManager = sessionManager;
         this.executor = new DuelRequestExecutor(this);
         this.requestRepository = Sets.newConcurrentHashSet();
+
+        new Scheduler(plugin).async(() -> requestRepository.removeIf(IDuelRequest::isExpired)).repeat(0L, 100L).run();
     }
 
     public <T> Optional<IDuelRequest<?>> getRequest(UUID id) {

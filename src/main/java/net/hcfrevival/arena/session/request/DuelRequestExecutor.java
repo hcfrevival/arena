@@ -1,5 +1,6 @@
 package net.hcfrevival.arena.session.request;
 
+import com.google.common.collect.Lists;
 import gg.hcfactions.libs.base.consumer.FailablePromise;
 import gg.hcfactions.libs.base.consumer.Promise;
 import lombok.AllArgsConstructor;
@@ -103,7 +104,7 @@ public class DuelRequestExecutor {
             teamReceiver.sendMessage(Component.text(teamSender.getDisplayName(), NamedTextColor.AQUA)
                     .appendSpace().append(Component.text("has sent you a", NamedTextColor.GRAY))
                     .appendSpace().append(gamerule.getDisplayNameComponent())
-                    .appendSpace().append(Component.text("duel request"))
+                    .appendSpace().append(Component.text("duel request", NamedTextColor.GRAY))
                     .appendSpace().append(Component.text("[Accept]", NamedTextColor.GREEN).clickEvent(ClickEvent.runCommand("/duel accept " + req.getId().toString()))));
 
             manager.getRequestRepository().add(req);
@@ -130,6 +131,29 @@ public class DuelRequestExecutor {
 
             queueManager.getQueue(senderPlayer).ifPresent(senderQueue -> queueManager.getQueueRepository().remove(senderQueue));
             queueManager.getQueue(receiverPlayer).ifPresent(receiverQueue -> queueManager.getQueueRepository().remove(receiverQueue));
+
+            List<IDuelRequest<?>> toRemove = Lists.newArrayList();
+            for (IDuelRequest<?> req : manager.getSessionManager().getDuelRequestManager().getRequestRepository()) {
+                if (req instanceof PlayerDuelRequest playerDuelRequest) {
+                    if (
+                            playerDuelRequest.getSender().getUniqueId().equals(senderPlayer.getUniqueId())
+                                    || playerDuelRequest.getSender().getUniqueId().equals(receiverPlayer.getUniqueId())
+                    ) {
+                        toRemove.add(req);
+                        continue;
+                    }
+
+                    if (
+                            playerDuelRequest.getReceiver().getUniqueId().equals(senderPlayer.getUniqueId())
+                            || playerDuelRequest.getReceiver().getUniqueId().equals(receiverPlayer.getUniqueId())
+                    ) {
+                        toRemove.add(req);
+                    }
+                }
+            }
+
+            // Remove all pending duel requests
+            toRemove.forEach(manager.getSessionManager().getDuelRequestManager().getRequestRepository()::remove);
 
             Optional<DuelSession> sessionAttempt = manager.getSessionManager().createDuelSession(
                     request.getGamerule(),

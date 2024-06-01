@@ -1,17 +1,19 @@
 package net.hcfrevival.arena.command;
 
 import gg.hcfactions.libs.acf.BaseCommand;
-import gg.hcfactions.libs.acf.annotation.CommandAlias;
-import gg.hcfactions.libs.acf.annotation.Description;
-import gg.hcfactions.libs.acf.annotation.Subcommand;
-import gg.hcfactions.libs.acf.annotation.Syntax;
+import gg.hcfactions.libs.acf.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.hcfrevival.arena.APermissions;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.menu.MatchMenu;
 import net.hcfrevival.arena.menu.RecapMenu;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.stats.impl.PlayerStatHolder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -22,6 +24,31 @@ import java.util.UUID;
 @CommandAlias("match|m")
 public final class MatchCommand extends BaseCommand {
     @Getter public final ArenaPlugin plugin;
+
+    @Subcommand("list")
+    @Description("View a list of all active matches")
+    public void onMatchList(Player player) {
+        SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
+        MatchMenu menu = new MatchMenu(plugin, player, sessionManager.getSessionRepository());
+        menu.open();
+    }
+
+    @Subcommand("end")
+    @Description("Force end a match")
+    @CommandPermission(APermissions.A_MOD)
+    @CommandCompletion("@players")
+    public void onMatchEnd(Player player, String username) {
+        SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
+
+        Player otherPlayer = Bukkit.getPlayer(username);
+        if (otherPlayer == null) {
+            player.sendMessage(Component.text("Player not found", NamedTextColor.RED));
+            return;
+        }
+
+        sessionManager.getSession(otherPlayer).ifPresentOrElse(sessionManager::endSession, () ->
+                player.sendMessage(Component.text("Session not found", NamedTextColor.RED)));
+    }
 
     @Subcommand("invsee|inv")
     @Description("View a post-match inventory")

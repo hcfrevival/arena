@@ -40,11 +40,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Getter
 public final class SessionManager extends ArenaManager {
-    @Getter public final DuelRequestManager duelRequestManager;
-    @Getter public final Set<ISession> sessionRepository;
-    @Getter public final Set<ISession> sessionHistory;
-    @Getter public BukkitTask matchHistoryCleanupTask;
+    public final DuelRequestManager duelRequestManager;
+    public final Set<ISession> sessionRepository;
+    public final Set<ISession> sessionHistory;
+    public BukkitTask matchHistoryCleanupTask;
 
     public SessionManager(ArenaPlugin plugin) {
         super(plugin);

@@ -101,6 +101,11 @@ public class TeamExecutor {
                     return;
                 }
 
+                if (manager.getTeam(arenaPlayer.getUniqueId()).isPresent()) {
+                    promise.reject("You are already on a team");
+                    return;
+                }
+
                 Optional<ISession> activeSessionQuery = sessionManager.getSession(team);
                 if (activeSessionQuery.isPresent()) {
                     giveLobbyItems = false;
@@ -112,7 +117,7 @@ public class TeamExecutor {
                 team.sendMessage(Component.text(player.getName(), NamedTextColor.AQUA).appendSpace().append(Component.text("has joined the team", NamedTextColor.GRAY)));
 
                 if (giveLobbyItems) {
-                    LobbyUtil.givePartyMemberItems(manager.getPlugin(), player);
+                    LobbyUtil.giveLobbyItems(manager.getPlugin(), player);
                 }
 
                 promise.resolve();
