@@ -83,14 +83,14 @@ public final class SpectatorListener implements Listener {
         }
 
         Player attacker = event.getDamager();
+        Player attacked = event.getDamaged();
         PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
 
-        playerManager.getPlayer(attacker.getUniqueId()).ifPresentOrElse(arenaPlayer -> {
-            if (!arenaPlayer.getCurrentState().equals(EPlayerState.INGAME)) {
+        playerManager.getPlayer(attacker.getUniqueId()).ifPresent(arenaPlayer -> {
+            if (arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE) || arenaPlayer.getCurrentState().equals(EPlayerState.SPECTATE_DEAD)) {
+                attacker.setSpectatorTarget(attacked);
                 event.setCancelled(true);
             }
-        }, () -> {
-            event.setCancelled(true);
         });
     }
 }

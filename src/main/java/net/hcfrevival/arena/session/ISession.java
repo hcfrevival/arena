@@ -157,7 +157,6 @@ public interface ISession {
         player.getPlayer().ifPresent(bukkitPlayer -> {
             player.setCurrentState(EPlayerState.LOBBY);
 
-
             bukkitPlayer.setGameMode(GameMode.SURVIVAL);
             bukkitPlayer.teleport(getPlugin().getConfiguration().getSpawnLocation().getBukkitLocation());
 

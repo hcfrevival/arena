@@ -28,6 +28,11 @@ public class TeamExecutor {
         PlayerManager playerManager = (PlayerManager) manager.getPlugin().getManagers().get(PlayerManager.class);
 
         playerManager.getPlayer(player.getUniqueId()).ifPresentOrElse(arenaPlayer -> {
+            if (!arenaPlayer.getCurrentState().equals(EPlayerState.LOBBY)) {
+                promise.reject("You are not in the lobby");
+                return;
+            }
+
             if (manager.getTeam(player).isPresent()) {
                 promise.reject("You are already on a team");
                 return;
