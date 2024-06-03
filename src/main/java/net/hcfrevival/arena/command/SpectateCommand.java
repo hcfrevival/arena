@@ -5,12 +5,14 @@ import gg.hcfactions.libs.acf.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.event.PlayerLeaveQueueEvent;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.session.SessionManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 @Getter
@@ -37,7 +39,14 @@ public final class SpectateCommand extends BaseCommand {
             playerManager.getPlayer(username).ifPresentOrElse(targetArenaPlayer ->
                     targetArenaPlayer.getPlayer().ifPresentOrElse(targetPlayer ->
                             sessionManager.getSession(targetPlayer).ifPresentOrElse(session -> {
-                                queueManager.getQueue(player).ifPresent(activeQueue -> queueManager.getQueueRepository().remove(activeQueue));
+                                queueManager.getQueue(player).ifPresent(queue -> {
+                                    PlayerLeaveQueueEvent leaveEvent = new PlayerLeaveQueueEvent(player, queue);
+                                    Bukkit.getPluginManager().callEvent(leaveEvent);
+
+                                    if (!leaveEvent.isCancelled()) {
+                                        queueManager.getQueueRepository().remove(queue);
+                                    }
+                                });
 
                                 session.startSpectating(arenaPlayer);
                                 session.sendMessage(Component.text(player.getName() + " is now spectating this match", NamedTextColor.GRAY));

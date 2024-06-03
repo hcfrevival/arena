@@ -9,6 +9,7 @@ import gg.hcfactions.libs.bukkit.menu.impl.Clickable;
 import gg.hcfactions.libs.bukkit.menu.impl.PaginatedMenu;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.event.PlayerLeaveQueueEvent;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.EPlayerState;
 import net.hcfrevival.arena.queue.QueueManager;
@@ -18,6 +19,7 @@ import net.hcfrevival.arena.session.impl.RankedDuelSession;
 import net.hcfrevival.arena.session.impl.TeamSession;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -91,7 +93,15 @@ public final class MatchMenu extends PaginatedMenu<ISession> {
                     return;
                 }
 
-                queueManager.getQueue(player).ifPresent(queue -> queueManager.getQueueRepository().remove(queue));
+                queueManager.getQueue(player).ifPresent(queue -> {
+                    PlayerLeaveQueueEvent leaveEvent = new PlayerLeaveQueueEvent(player, queue);
+                    Bukkit.getPluginManager().callEvent(leaveEvent);
+
+                    if (!leaveEvent.isCancelled()) {
+                        queueManager.getQueueRepository().remove(queue);
+                    }
+                });
+
                 session.startSpectating(arenaPlayer);
                 player.closeInventory();
             }, () -> {
