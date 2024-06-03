@@ -7,6 +7,7 @@ import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.session.SessionManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -25,6 +26,7 @@ public final class SpectateCommand extends BaseCommand {
     public void onSpectate(Player player, String username) {
         PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
         SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
+        QueueManager queueManager = (QueueManager) plugin.getManagers().get(QueueManager.class);
 
         playerManager.getPlayer(player.getUniqueId()).ifPresentOrElse(arenaPlayer -> {
             if (!arenaPlayer.getCurrentState().equals(EPlayerState.LOBBY)) {
@@ -35,6 +37,7 @@ public final class SpectateCommand extends BaseCommand {
             playerManager.getPlayer(username).ifPresentOrElse(targetArenaPlayer ->
                     targetArenaPlayer.getPlayer().ifPresentOrElse(targetPlayer ->
                             sessionManager.getSession(targetPlayer).ifPresentOrElse(session -> {
+                                queueManager.getQueue(player).ifPresent(activeQueue -> queueManager.getQueueRepository().remove(activeQueue));
 
                                 session.startSpectating(arenaPlayer);
                                 session.sendMessage(Component.text(player.getName() + " is now spectating this match", NamedTextColor.GRAY));
