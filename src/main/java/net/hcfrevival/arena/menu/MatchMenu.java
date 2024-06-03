@@ -4,12 +4,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import gg.hcfactions.libs.base.util.Time;
 import gg.hcfactions.libs.bukkit.builder.impl.ItemBuilder;
+import gg.hcfactions.libs.bukkit.menu.IMenuUpdater;
 import gg.hcfactions.libs.bukkit.menu.impl.Clickable;
 import gg.hcfactions.libs.bukkit.menu.impl.PaginatedMenu;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.hcfrevival.arena.queue.QueueManager;
 import net.hcfrevival.arena.session.ISession;
 import net.hcfrevival.arena.session.impl.DuelSession;
 import net.hcfrevival.arena.session.impl.RankedDuelSession;
@@ -80,6 +82,7 @@ public final class MatchMenu extends PaginatedMenu<ISession> {
 
         return new Clickable(builder.build(), i, click -> {
             PlayerManager playerManager = (PlayerManager) plugin.getManagers().get(PlayerManager.class);
+            QueueManager queueManager = (QueueManager) plugin.getManagers().get(QueueManager.class);
 
             playerManager.getPlayer(player.getUniqueId()).ifPresentOrElse(arenaPlayer -> {
                 if (!arenaPlayer.getCurrentState().equals(EPlayerState.LOBBY)) {
@@ -88,6 +91,7 @@ public final class MatchMenu extends PaginatedMenu<ISession> {
                     return;
                 }
 
+                queueManager.getQueue(player).ifPresent(queue -> queueManager.getQueueRepository().remove(queue));
                 session.startSpectating(arenaPlayer);
                 player.closeInventory();
             }, () -> {
@@ -95,5 +99,11 @@ public final class MatchMenu extends PaginatedMenu<ISession> {
                 player.sendMessage(Component.text("Failed to load your Arena data", NamedTextColor.RED));
             });
         });
+    }
+
+    @Override
+    public void open() {
+        super.open();
+        addUpdater(this::update, 20L);
     }
 }
