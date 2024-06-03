@@ -1,5 +1,7 @@
 package net.hcfrevival.arena.team;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import gg.hcfactions.libs.base.consumer.Promise;
 import gg.hcfactions.libs.bukkit.scheduler.Scheduler;
 import lombok.AllArgsConstructor;
@@ -18,6 +20,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -93,7 +96,7 @@ public class TeamExecutor {
         boolean bypass = (player.hasPermission(APermissions.A_MOD) || player.hasPermission(APermissions.A_ADMIN));
 
         manager.getTeam(teamName).ifPresentOrElse(team -> {
-            if (!team.isInvited(player.getUniqueId()) && !bypass) {
+            if (!team.isInvited(player.getUniqueId()) && !bypass && !team.isOpen()) {
                 promise.reject("You have not been invited to join this team");
                 return;
             }
@@ -224,5 +227,54 @@ public class TeamExecutor {
         kickedPlayer.sendMessage(Component.text("You have been kicked from your team", NamedTextColor.YELLOW));
 
         promise.resolve();
+    }
+
+    public void toggleTeamOpen(Player player, Promise promise) {
+        final boolean bypass = player.hasPermission(APermissions.A_MOD);
+
+        manager.getTeam(player).ifPresentOrElse(team -> {
+            if (!team.getLeader().getUniqueId().equals(player.getUniqueId()) && !bypass) {
+                promise.reject("You are not the leader of the team");
+                return;
+            }
+
+            team.setOpen(!team.isOpen());
+            team.sendMessage(Component.text(player.getName(), NamedTextColor.AQUA)
+                    .appendSpace().append(Component.text("has" + " " + (team.isOpen() ? "opened" : "closed") + " the team", NamedTextColor.GRAY))
+            );
+
+            promise.resolve();
+        }, () -> promise.reject("You are not on a team"));
+    }
+
+    public void printTeamInfo(Player player, String username, Promise promise) {
+        Player toQuery = Bukkit.getPlayer(username);
+
+        if (toQuery == null || !toQuery.isOnline()) {
+            promise.reject("Player not found");
+            return;
+        }
+
+        manager.getTeam(toQuery).ifPresentOrElse(team -> {
+            SessionManager sessionManager = (SessionManager) manager.getPlugin().getManagers().get(SessionManager.class);
+            List<String> memberNames = Lists.newArrayList();
+            team.getFullMembers().forEach(member -> memberNames.add(member.getUsername()));
+            boolean ingame = sessionManager.getSession(team).isPresent();
+
+            player.sendMessage(Component.text(team.getDisplayName(), NamedTextColor.AQUA));
+
+            player.sendMessage(Component.text("Status", NamedTextColor.GRAY).append(Component.text(":", NamedTextColor.WHITE))
+                    .appendSpace().append(Component.text((ingame) ? "In Match" : "Lobby", NamedTextColor.WHITE)));
+
+            player.sendMessage(Component.text("Joinable", NamedTextColor.GRAY).append(Component.text(":"))
+                    .appendSpace().append(Component.text((team.isOpen() ? "Yes" : "No"), (team.isOpen() ? NamedTextColor.GREEN : NamedTextColor.RED))));
+
+            player.sendMessage(Component.text("Members", NamedTextColor.GRAY)
+                    .append(Component.text(": " + Joiner.on(", ").join(memberNames), NamedTextColor.WHITE)));
+
+            promise.resolve();
+        }, () -> {
+            promise.reject("Team not found");
+        });
     }
 }

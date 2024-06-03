@@ -22,12 +22,14 @@ public final class Team {
     @Getter @Setter public ArenaPlayer leader;
     @Getter public final Set<ArenaPlayer> members;
     @Getter public final Set<UUID> invitedMembers;
+    @Getter @Setter public boolean open;
 
     public Team(ArenaPlayer leader) {
         this.uniqueId = UUID.randomUUID();
         this.leader = leader;
         this.members = Sets.newConcurrentHashSet();
         this.invitedMembers = Sets.newConcurrentHashSet();
+        this.open = false;
 
         leader.getPlayer().ifPresent(leader::addFriendly);
     }

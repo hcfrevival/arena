@@ -87,4 +87,41 @@ public final class TeamCommand extends BaseCommand {
             }
         });
     }
+
+    @Subcommand("open")
+    @Description("Allow anyone to join your team")
+    public void onTeamOpen(Player player) {
+        TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
+
+        teamManager.getExecutor().toggleTeamOpen(player, new Promise() {
+            @Override
+            public void resolve() {}
+
+            @Override
+            public void reject(String s) {
+                player.sendMessage(Component.text("Failed to open team: " + s, NamedTextColor.RED));
+            }
+        });
+    }
+
+    @Subcommand("info")
+    @Description("View a team's information")
+    @CommandCompletion("@players")
+    @Syntax("[player]")
+    public void onTeamInfo(Player player, @Optional String username) {
+        if (username == null) {
+            username = player.getName();
+        }
+
+        TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
+        teamManager.getExecutor().printTeamInfo(player, username, new Promise() {
+            @Override
+            public void resolve() {}
+
+            @Override
+            public void reject(String s) {
+                player.sendMessage(Component.text("Failed to query team: " + s, NamedTextColor.RED));
+            }
+        });
+    }
 }
