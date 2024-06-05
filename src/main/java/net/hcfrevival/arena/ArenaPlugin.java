@@ -102,7 +102,6 @@ public final class ArenaPlugin extends AresPlugin {
         registerService(new ReportService(this));
         registerService(new AltService(this));
         registerService(new ClassService(this));
-        // registerService(new RNService(this));
         startServices();
 
         // managers
