@@ -14,6 +14,7 @@ import net.hcfrevival.arena.kit.impl.HCFDefaultKit;
 import net.hcfrevival.arena.kit.impl.HCFPlayerKit;
 import net.hcfrevival.arena.kit.impl.PlayerKit;
 import net.hcfrevival.arena.team.TeamManager;
+import net.hcfrevival.arena.team.impl.Team;
 import net.hcfrevival.arena.team.loadout.TeamLoadoutConfig;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -75,8 +76,13 @@ public final class KitManager extends ArenaManager {
 
         if (gamerule.equals(EGamerule.HCF)) {
             TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
-            TeamLoadoutConfig.ELoadoutValue value = teamManager.getTeam(player).map(team ->
-                    team.getLoadoutConfig().getLoadoutValue(player)).orElse(TeamLoadoutConfig.ELoadoutValue.NETHERITE);
+            TeamLoadoutConfig.ELoadoutValue value = TeamLoadoutConfig.ELoadoutValue.NETHERITE;
+            Optional<Team> teamQuery = teamManager.getTeam(player);
+
+            if (teamQuery.isPresent()) {
+                Team team = teamQuery.get();
+                value = team.getLoadoutConfig().getLoadoutValue(player);
+            }
 
             getDefaultKit(value).flatMap(defaultKit -> cis.getItem(DefaultKitBook.class)).ifPresent(defaultKitItem -> player.getInventory().addItem(defaultKitItem.getItem()));
             getPlayerKit(player, value).flatMap(playerKit -> cis.getItem(CustomKitBook.class)).ifPresent(playerKitItem -> player.getInventory().addItem(playerKitItem.getItem()));
