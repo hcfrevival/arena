@@ -32,7 +32,10 @@ public record PlayerDataListener(@Getter ArenaPlugin plugin) implements Listener
         playerManager.getPlayerRepository().add(new ArenaPlayer(plugin, player));
 
         final KitManager kitManager = (KitManager) plugin.getManagers().get(KitManager.class);
-        new Scheduler(plugin).async(() -> kitManager.loadPlayerKits(player)).run();
+        new Scheduler(plugin).async(() -> {
+            kitManager.loadPlayerKits(player);
+            kitManager.loadPlayerHCFKits(player);
+        }).run();
     }
 
     /**

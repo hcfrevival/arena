@@ -10,7 +10,6 @@ import java.util.List;
 public interface IArenaKit {
     String getName();
     List<ItemStack> getContents();
-    List<ItemStack> getArmorContents();
 
     default void apply(Player player, boolean message) {
         player.getInventory().clear();
@@ -24,11 +23,6 @@ public interface IArenaKit {
 
             cursor += 1;
         }
-
-        ItemStack[] armorContents = new ItemStack[getArmorContents().size()];
-        armorContents = getArmorContents().toArray(armorContents);
-
-        player.getInventory().setArmorContents(armorContents);
 
         if (message) {
             player.sendMessage(ArenaMessage.getKitAppliedMessage(getName()));

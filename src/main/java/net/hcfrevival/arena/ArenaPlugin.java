@@ -25,7 +25,7 @@ import net.hcfrevival.arena.ranked.RankedManager;
 import net.hcfrevival.arena.session.SessionManager;
 import net.hcfrevival.arena.team.TeamManager;
 import net.hcfrevival.arena.timer.TimerManager;
-import net.hcfrevival.revnet.RNService;
+import net.hcfrevival.classes.ClassService;
 import org.bukkit.NamespacedKey;
 
 import java.util.Map;
@@ -54,6 +54,7 @@ public final class ArenaPlugin extends AresPlugin {
         configuration = new ArenaConfig(this);
         configuration.load();
 
+        // registerGson();
         registerLogger("Arena");
 
         // dbs
@@ -90,6 +91,7 @@ public final class ArenaPlugin extends AresPlugin {
         cis.registerNewItem(new DisbandTeamItem(this));
         cis.registerNewItem(new TeamListItem(this));
         cis.registerNewItem(new LeaveTeamItem(this));
+        cis.registerNewItem(new TeamLoadoutItem(this));
         registerService(cis);
 
         registerService(new CXService(this));
@@ -99,6 +101,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerService(new RankService(this));
         registerService(new ReportService(this));
         registerService(new AltService(this));
+        registerService(new ClassService(this));
         // registerService(new RNService(this));
         startServices();
 
@@ -125,6 +128,7 @@ public final class ArenaPlugin extends AresPlugin {
         registerListener(new TeamListener(this));
         registerListener(new RankedDataListener(this));
         registerListener(new CosmeticListener(this));
+        registerListener(new ClassListener(this));
         registerListener(new WorldListener());
     }
 

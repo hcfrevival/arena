@@ -5,8 +5,11 @@ import com.google.common.collect.Maps;
 import gg.hcfactions.libs.bukkit.services.impl.items.ICustomItem;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.kit.KitManager;
 import net.hcfrevival.arena.session.SessionManager;
+import net.hcfrevival.arena.team.TeamManager;
+import net.hcfrevival.arena.team.loadout.TeamLoadoutConfig;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
@@ -65,10 +68,19 @@ public record DefaultKitBook(@Getter ArenaPlugin plugin) implements ICustomItem 
         return () -> {
             final SessionManager sessionManager = (SessionManager) plugin.getManagers().get(SessionManager.class);
             final KitManager kitManager = (KitManager) plugin.getManagers().get(KitManager.class);
+            final TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
 
-            sessionManager.getSession(who).flatMap(session ->
-                    kitManager.getDefaultKit(session.getGamerule())).ifPresent(defaultKit ->
-                        defaultKit.apply(who, true));
+            sessionManager.getSession(who).ifPresent(session -> {
+                if (session.getGamerule().equals(EGamerule.HCF)) {
+                    TeamLoadoutConfig.ELoadoutValue value = teamManager.getTeam(who).map(team ->
+                            team.getLoadoutConfig().getLoadoutValue(who)).orElse(TeamLoadoutConfig.ELoadoutValue.NETHERITE);
+
+                    kitManager.getDefaultKit(value).ifPresent(defaultKit -> defaultKit.apply(who, true));
+                    return;
+                }
+
+                kitManager.getDefaultKit(session.getGamerule()).ifPresent(defaultKit -> defaultKit.apply(who, true));
+            });
         };
     }
 

@@ -10,7 +10,11 @@ import net.hcfrevival.arena.gamerule.EGamerule;
 import net.hcfrevival.arena.items.CustomKitBook;
 import net.hcfrevival.arena.items.DefaultKitBook;
 import net.hcfrevival.arena.kit.impl.DefaultKit;
+import net.hcfrevival.arena.kit.impl.HCFDefaultKit;
+import net.hcfrevival.arena.kit.impl.HCFPlayerKit;
 import net.hcfrevival.arena.kit.impl.PlayerKit;
+import net.hcfrevival.arena.team.TeamManager;
+import net.hcfrevival.arena.team.loadout.TeamLoadoutConfig;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -33,6 +37,7 @@ public final class KitManager extends ArenaManager {
     @Override
     public void onEnable() {
         loadDefaultKits();
+        loadDefaultHCFKits();
 
         super.onEnable();
     }
@@ -51,20 +56,78 @@ public final class KitManager extends ArenaManager {
         return getPlayerKits().stream().filter(k -> k.getOwnerId().equals(player.getUniqueId()) && k.getGamerule().equals(gamerule)).findFirst();
     }
 
+    public Optional<HCFPlayerKit> getPlayerKit(Player player, TeamLoadoutConfig.ELoadoutValue value) {
+        return getPlayerKits().stream().filter(k -> k.getOwnerId().equals(player.getUniqueId()) && k instanceof HCFPlayerKit && ((HCFPlayerKit)k).getType().equals(value)).findFirst().map(iArenaKit -> (HCFPlayerKit)iArenaKit);
+    }
+
     public Optional<DefaultKit> getDefaultKit(EGamerule gamerule) {
         final Optional<IArenaKit> kitQuery = kitRepository.stream().filter(k -> k instanceof final DefaultKit defaultKit && defaultKit.getGamerule().equals(gamerule)).findFirst();
+        return kitQuery.map(iArenaKit -> (DefaultKit) iArenaKit);
+    }
 
-        if (kitQuery.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.of((DefaultKit) kitQuery.get());
+    public Optional<HCFDefaultKit> getDefaultKit(TeamLoadoutConfig.ELoadoutValue value) {
+        final Optional<IArenaKit> kitQuery = kitRepository.stream().filter(k -> k instanceof HCFDefaultKit && ((HCFDefaultKit)k).getType().equals(value)).findFirst();
+        return kitQuery.map(iArenaKit -> (HCFDefaultKit) iArenaKit);
     }
 
     public void giveKitBooks(Player player, EGamerule gamerule) {
         final CustomItemService cis = (CustomItemService) plugin.getService(CustomItemService.class);
+
+        if (gamerule.equals(EGamerule.HCF)) {
+            TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
+            TeamLoadoutConfig.ELoadoutValue value = teamManager.getTeam(player).map(team ->
+                    team.getLoadoutConfig().getLoadoutValue(player)).orElse(TeamLoadoutConfig.ELoadoutValue.NETHERITE);
+
+            getDefaultKit(value).flatMap(defaultKit -> cis.getItem(DefaultKitBook.class)).ifPresent(defaultKitItem -> player.getInventory().addItem(defaultKitItem.getItem()));
+            getPlayerKit(player, value).flatMap(playerKit -> cis.getItem(CustomKitBook.class)).ifPresent(playerKitItem -> player.getInventory().addItem(playerKitItem.getItem()));
+
+            return;
+        }
+
         getDefaultKit(gamerule).flatMap(defaultKit -> cis.getItem(DefaultKitBook.class)).ifPresent(defaultKitItem -> player.getInventory().addItem(defaultKitItem.getItem()));
         getPlayerKit(player, gamerule).flatMap(playerKit -> cis.getItem(CustomKitBook.class)).ifPresent(playerKitItem -> player.getInventory().addItem(playerKitItem.getItem()));
+    }
+
+    public void loadDefaultHCFKits() {
+        YamlConfiguration conf = plugin.loadConfiguration("default_kits");
+        int loaded = 0;
+
+        if (conf.get("data") == null) {
+            return;
+        }
+
+        for (String gameruleName : Objects.requireNonNull(conf.getConfigurationSection("data")).getKeys(false)) {
+            plugin.getAresLogger().info("Parsing {}", gameruleName);
+            if (!gameruleName.startsWith(EGamerule.HCF.name())) {
+                plugin.getAresLogger().info("Skipped - 1 {}", gameruleName);
+                continue;
+            }
+
+            String[] split = gameruleName.split("_");
+            if (split.length != 2) {
+                plugin.getAresLogger().error("Invalid HCF Gamerule Split Length: {}", split.length);
+                continue;
+            }
+
+            String valueName = split[1];
+            TeamLoadoutConfig.ELoadoutValue value;
+
+            try {
+                value = TeamLoadoutConfig.ELoadoutValue.valueOf(valueName);
+            } catch (IllegalArgumentException e) {
+                plugin.getAresLogger().error("Invalid loadout value: {}", valueName);
+                continue;
+            }
+
+            List<ItemStack> contents = (List<ItemStack>)conf.getList("data." + gameruleName + ".contents");
+            List<ItemStack> armor = (List<ItemStack>)conf.getList("data." + gameruleName + ".armor");
+
+            HCFDefaultKit defaultKit = new HCFDefaultKit(value, contents);
+            kitRepository.add(defaultKit);
+            loaded++;
+        }
+
+        plugin.getAresLogger().info("Loaded {} HCF Loadouts", loaded);
     }
 
     public void loadDefaultKits() {
@@ -77,6 +140,10 @@ public final class KitManager extends ArenaManager {
         }
 
         for (String gameruleName : conf.getConfigurationSection("data").getKeys(false)) {
+            if (gameruleName.startsWith(EGamerule.HCF.name())) {
+                continue;
+            }
+
             final EGamerule gamerule;
             try {
                 gamerule = EGamerule.valueOf(gameruleName);
@@ -86,14 +153,49 @@ public final class KitManager extends ArenaManager {
             }
 
             final List<ItemStack> contents = (List<ItemStack>)conf.getList("data." + gameruleName + ".contents");
-            final List<ItemStack> armor = (List<ItemStack>)conf.getList("data." + gameruleName + ".armor");
-            final DefaultKit defaultKit = new DefaultKit(gamerule, contents, armor);
+            final DefaultKit defaultKit = new DefaultKit(gamerule, contents);
             kitRepository.add(defaultKit);
 
             loaded += 1;
         }
 
         plugin.getAresLogger().info("Loaded " + loaded + " Default Kits");
+    }
+
+    public void loadPlayerHCFKits(Player player) {
+        final File file = new File(plugin.getDataFolder() + File.separator + "player_kits" + File.separator + player.getUniqueId() + ".yml");
+
+        if (!file.exists()) {
+            return;
+        }
+
+        final YamlConfiguration conf = YamlConfiguration.loadConfiguration(file);
+
+        for (String gameruleName : Objects.requireNonNull(conf.getConfigurationSection("data")).getKeys(false)) {
+            if (!gameruleName.startsWith(EGamerule.HCF.name())) {
+                continue;
+            }
+
+            String[] split = gameruleName.split("_");
+            if (split.length != 2) {
+                plugin.getAresLogger().error("Invalid HCF Gamerule Split Length: {} ({})", gameruleName, split.length);
+                continue;
+            }
+
+            String valueName = split[1];
+            TeamLoadoutConfig.ELoadoutValue value;
+
+            try {
+                value = TeamLoadoutConfig.ELoadoutValue.valueOf(valueName);
+            } catch (IllegalArgumentException e) {
+                plugin.getAresLogger().error("Invalid loadout value: {}", valueName);
+                continue;
+            }
+
+            final List<ItemStack> contents = (List<ItemStack>)conf.getList("data." + gameruleName + ".contents");
+            final HCFPlayerKit playerKit = new HCFPlayerKit(value, player.getUniqueId(), contents);
+            kitRepository.add(playerKit);
+        }
     }
 
     public void loadPlayerKits(Player player) {
@@ -106,6 +208,12 @@ public final class KitManager extends ArenaManager {
         final YamlConfiguration conf = YamlConfiguration.loadConfiguration(file);
 
         for (String gameruleName : Objects.requireNonNull(conf.getConfigurationSection("data")).getKeys(false)) {
+            // We want to skip loading HCF kits here because this feature
+            // was an added complexity that is being handled in its own function
+            if (gameruleName.startsWith(EGamerule.HCF.name())) {
+                continue;
+            }
+
             final EGamerule gamerule;
             try {
                 gamerule = EGamerule.valueOf(gameruleName);
@@ -115,34 +223,45 @@ public final class KitManager extends ArenaManager {
             }
 
             final List<ItemStack> contents = (List<ItemStack>)conf.getList("data." + gameruleName + ".contents");
-            final List<ItemStack> armor = (List<ItemStack>)conf.getList("data." + gameruleName + ".armor");
-            final PlayerKit playerKit = new PlayerKit(player.getUniqueId(), gamerule, contents, armor);
+            final PlayerKit playerKit = new PlayerKit(player.getUniqueId(), gamerule, contents);
             kitRepository.add(playerKit);
         }
     }
 
     public void saveDefaultKit(DefaultKit kit) {
-        kitRepository.removeIf(k -> k instanceof final DefaultKit defaultKit && defaultKit.getGamerule().equals(kit.getGamerule()));
+        String gameruleName = kit.getGamerule().name();
+
+        if (kit instanceof HCFDefaultKit hcfKit) {
+            kitRepository.removeIf(k -> k instanceof HCFPlayerKit otherKit && otherKit.getType().equals(hcfKit.getType()));
+            gameruleName = hcfKit.getGamerule().name() + "_" + hcfKit.getType().name();
+        } else {
+            kitRepository.removeIf(k -> k instanceof final PlayerKit playerKit && playerKit.getGamerule().equals(kit.getGamerule()));
+        }
+
         kitRepository.add(kit);
 
         final YamlConfiguration conf = plugin.loadConfiguration("default_kits");
-
-        conf.set("data." + kit.getGamerule().name() + ".armor", kit.getArmorContents());
-        conf.set("data." + kit.getGamerule().name() + ".contents", kit.getContents());
+        conf.set("data." + gameruleName + ".contents", kit.getContents());
 
         plugin.saveConfiguration("default_kits", conf);
     }
 
     public void savePlayerKit(Player player, PlayerKit kit) {
+        String gameruleName = kit.getGamerule().name();
+
         createPlayerFile(player);
 
-        kitRepository.removeIf(k -> k instanceof final PlayerKit playerKit && playerKit.getGamerule().equals(kit.getGamerule()));
+        if (kit instanceof HCFPlayerKit hcfKit) {
+            kitRepository.removeIf(k -> k instanceof HCFPlayerKit otherKit && otherKit.getType().equals(hcfKit.getType()));
+            gameruleName = hcfKit.getGamerule().name() + "_" + hcfKit.getType().name();
+        } else {
+            kitRepository.removeIf(k -> k instanceof final PlayerKit playerKit && playerKit.getGamerule().equals(kit.getGamerule()));
+        }
+
         kitRepository.add(kit);
 
         final YamlConfiguration conf = plugin.loadConfiguration(File.separator + "player_kits" + File.separator + player.getUniqueId().toString());
-
-        conf.set("data." + kit.getGamerule().name() + ".armor", kit.getArmorContents());
-        conf.set("data." + kit.getGamerule().name() + ".contents", kit.getContents());
+        conf.set("data." + gameruleName + ".contents", kit.getContents());
 
         plugin.saveConfiguration(File.separator + "player_kits" + File.separator + player.getUniqueId().toString(), conf);
     }

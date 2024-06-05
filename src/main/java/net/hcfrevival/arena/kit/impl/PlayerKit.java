@@ -15,7 +15,6 @@ public class PlayerKit implements IArenaKit {
     @Getter public final UUID ownerId;
     @Getter public final EGamerule gamerule;
     @Getter public final List<ItemStack> contents;
-    @Getter public final List<ItemStack> armorContents;
 
     @Override
     public String getName() {

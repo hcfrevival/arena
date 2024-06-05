@@ -115,8 +115,7 @@ public final class KitEditorMenu implements IMenu {
                     final PlayerKit playerKit = new PlayerKit(
                             player.getUniqueId(),
                             gamerule,
-                            Arrays.asList(player.getInventory().getContents()),
-                            Arrays.asList(player.getInventory().getArmorContents())
+                            Arrays.asList(player.getInventory().getContents())
                     );
 
                     KitFilterUtil.isValid(Arrays.asList(player.getInventory().getContents()), gamerule, new Promise() {

@@ -21,10 +21,18 @@ import java.awt.*;
 @AllArgsConstructor
 public enum EGamerule {
     NODEBUFF(net.kyori.adventure.text.Component.text("No Debuff", NamedTextColor.RED), ChatColor.RED + "No Debuff", Material.SPLASH_POTION),
-    DEBUFF(net.kyori.adventure.text.Component.text("Debuff", TextColor.color(PotionEffectType.POISON.getColor().getRed(), PotionEffectType.POISON.getColor().getGreen(), PotionEffectType.POISON.getColor().getBlue())), net.md_5.bungee.api.ChatColor.of(String.format("#%02x%02x%02x", PotionType.POISON.getEffectType().getColor().getRed(), PotionType.POISON.getEffectType().getColor().getGreen(), PotionType.POISON.getEffectType().getColor().getBlue())) + "Debuff", Material.SPLASH_POTION),
-    // GAPPLE(net.kyori.adventure.text.Component.text("Gapple", NamedTextColor.LIGHT_PURPLE), ChatColor.LIGHT_PURPLE + "Gapple", Material.ENCHANTED_GOLDEN_APPLE),
+    DEBUFF(net.kyori.adventure.text.Component.text("Debuff", TextColor.color(
+            PotionEffectType.POISON.getColor().getRed(),
+            PotionEffectType.POISON.getColor().getGreen(),
+            PotionEffectType.POISON.getColor().getBlue())), net.md_5.bungee.api.ChatColor.of(String.format("#%02x%02x%02x",
+            PotionType.POISON.getEffectType().getColor().getRed(),
+            PotionType.POISON.getEffectType().getColor().getGreen(),
+            PotionType.POISON.getEffectType().getColor().getBlue()))
+            + "Debuff", Material.SPLASH_POTION),
+    HCF(Component.text("HCF", NamedTextColor.GOLD), ChatColor.GOLD + "HCF", Material.NETHERITE_HELMET),
+    GAPPLE(net.kyori.adventure.text.Component.text("Gapple", NamedTextColor.LIGHT_PURPLE), ChatColor.LIGHT_PURPLE + "Gapple", Material.ENCHANTED_GOLDEN_APPLE),
     VANILLA(net.kyori.adventure.text.Component.text("Vanilla", NamedTextColor.DARK_PURPLE), ChatColor.DARK_PURPLE + "Vanilla", Material.NETHERITE_SWORD);
-    //MACE(net.kyori.adventure.text.Component.text("Mace", NamedTextColor.DARK_GRAY), ChatColor.DARK_GRAY + "Mace", Material.MACE);
+    // MACE(net.kyori.adventure.text.Component.text("Mace", NamedTextColor.DARK_GRAY), ChatColor.DARK_GRAY + "Mace", Material.MACE, false);
 
     @Getter public Component displayNameComponent;
     @Getter public String displayName;

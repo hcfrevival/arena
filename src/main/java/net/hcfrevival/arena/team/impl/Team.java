@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.hcfrevival.arena.player.impl.ArenaPlayer;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.hcfrevival.arena.team.loadout.TeamLoadoutConfig;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -23,6 +24,7 @@ public final class Team {
     @Getter public final Set<ArenaPlayer> members;
     @Getter public final Set<UUID> invitedMembers;
     @Getter @Setter public boolean open;
+    @Getter public TeamLoadoutConfig loadoutConfig;
 
     public Team(ArenaPlayer leader) {
         this.uniqueId = UUID.randomUUID();
@@ -30,6 +32,7 @@ public final class Team {
         this.members = Sets.newConcurrentHashSet();
         this.invitedMembers = Sets.newConcurrentHashSet();
         this.open = false;
+        this.loadoutConfig = new TeamLoadoutConfig(this);
 
         leader.getPlayer().ifPresent(leader::addFriendly);
     }
@@ -119,6 +122,7 @@ public final class Team {
 
         getFullMembers().forEach(member -> arenaPlayer.getPlayer().ifPresent(member::removeFriendly));
         members.remove(arenaPlayer);
+        loadoutConfig.getLoadoutRepository().remove(arenaPlayer.getUniqueId());
     }
 
     public void disband() {
