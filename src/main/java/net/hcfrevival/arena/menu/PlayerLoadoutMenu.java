@@ -50,6 +50,10 @@ public final class PlayerLoadoutMenu extends GenericMenu {
                     .setMaterial(material)
                     .setName(Component.text(Strings.capitalize(value.name().toLowerCase()), NamedTextColor.GOLD));
 
+            if (value.isDisabled()) {
+                builder.addLore(Component.text("Disabled", NamedTextColor.RED));
+            }
+
             if (selected) {
                 builder.addEnchant(Enchantment.UNBREAKING, 0);
                 builder.addFlag(ItemFlag.HIDE_ENCHANTS);
@@ -61,7 +65,7 @@ public final class PlayerLoadoutMenu extends GenericMenu {
 
             ItemStack item = builder.build();
             addItem(new Clickable(item, cursor, click -> {
-                if (selected) {
+                if (selected || value.isDisabled()) {
                     return;
                 }
 
