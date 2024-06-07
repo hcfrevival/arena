@@ -4,9 +4,13 @@ import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.hcfrevival.arena.ArenaPlugin;
+import net.hcfrevival.arena.event.MatchFinishEvent;
 import net.hcfrevival.arena.player.PlayerManager;
 import net.hcfrevival.arena.player.impl.EPlayerState;
+import net.hcfrevival.arena.session.impl.DuelSession;
+import net.hcfrevival.arena.session.impl.TeamSession;
 import net.hcfrevival.arena.team.TeamManager;
+import net.hcfrevival.classes.ClassService;
 import net.hcfrevival.classes.consumables.EConsumableApplicationType;
 import net.hcfrevival.classes.events.ClassConsumeItemEvent;
 import net.hcfrevival.classes.events.ClassHoldableUpdateEvent;
@@ -122,5 +126,31 @@ public final class ClassListener implements Listener {
             event.getWithinPartialRadiusPlayers().clear();
             event.getWithinFullRadiusPlayers().clear();
         });
+    }
+
+    @EventHandler
+    public void onMatchFinish(MatchFinishEvent event) {
+        ClassService cs = (ClassService) plugin.getService(ClassService.class);
+
+        if (cs == null) {
+            return;
+        }
+
+        if (event.getSession() instanceof TeamSession teamSession) {
+            teamSession.getTeams().forEach(team ->
+                    team.getFullMembers().forEach(member ->
+                            cs.getClassRepository().forEach(playerClass ->
+                                    playerClass.getConfig().getConsumables().forEach(consumable ->
+                                            consumable.getCooldowns().remove(member.getUniqueId())))));
+
+            return;
+        }
+
+        if (event.getSession() instanceof DuelSession duelSession) {
+            duelSession.getPlayers().forEach(player ->
+                    cs.getClassRepository().forEach(playerClass ->
+                            playerClass.getConfig().getConsumables().forEach(consumable ->
+                                    consumable.getCooldowns().remove(player.getUniqueId()))));
+        }
     }
 }
