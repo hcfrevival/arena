@@ -91,6 +91,10 @@ public final class TeamListener implements Listener {
             return;
         }
 
+        if (shooter.getUniqueId().equals(hitEntity.getUniqueId())) {
+            return;
+        }
+
         TeamManager teamManager = (TeamManager) plugin.getManagers().get(TeamManager.class);
 
         teamManager.getTeam(shooter).ifPresent(team -> {
